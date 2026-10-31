@@ -1,12 +1,7 @@
 package com.example.receiptreminder.di
 
-import android.content.Context
 import com.example.receiptreminder.domain.repository.*
 import com.example.receiptreminder.fake.*
-import receipt.normalize.DefaultProductNormalizer
-import receipt.parser.DefaultReceiptParser
-import receipt.scan.DefaultReceiptScanner
-import receipt.scan.OcrReceiptCandidateScanner
 
 /**
  * アプリ全体の依存性注入（DI）コンテナ
@@ -27,7 +22,7 @@ interface AppContainer {
  * 仮実装（Fake）で配線された既定の AppContainer
  * 画面開発（第2波 T-09〜T-12）やエミュレータ・ViewModel でそのまま動作可能
  */
-class DefaultAppContainer(private val appContext: Context? = null) : AppContainer {
+class DefaultAppContainer : AppContainer {
 
     override val shoppingListRepository: FakeShoppingListRepository by lazy {
         FakeShoppingListRepository()
@@ -41,14 +36,8 @@ class DefaultAppContainer(private val appContext: Context? = null) : AppContaine
         FakePurchaseRepository()
     }
 
-    override val receiptScanner: ReceiptScanner by lazy {
-        appContext?.let {
-            OcrReceiptCandidateScanner(
-                ocr = DefaultReceiptScanner(it),
-                parser = DefaultReceiptParser(),
-                normalizer = DefaultProductNormalizer()
-            )
-        } ?: FakeReceiptScanner()
+    override val receiptScanner: FakeReceiptScanner by lazy {
+        FakeReceiptScanner()
     }
 
     override val receiptReviewService: FakeReceiptReviewService by lazy {

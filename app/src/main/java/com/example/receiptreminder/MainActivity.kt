@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CompositionLocalProvider(LocalAppContainer provides AppContainerHolder.get(this)) {
+            CompositionLocalProvider(LocalAppContainer provides AppContainerHolder.container) {
                 ReceiptReminderTheme {
                     AppNavigation()
                 }
