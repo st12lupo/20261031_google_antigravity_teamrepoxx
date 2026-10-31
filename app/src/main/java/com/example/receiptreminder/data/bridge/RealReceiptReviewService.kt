@@ -18,7 +18,8 @@ class RealReceiptReviewService(
     private val ocrScanner: OcrReceiptScanner? = null,
     private val normalizer: ProductNormalizer? = null,
     initialPendingReceipt: ReceiptCandidate? = null,
-    initialImageUri: String? = null
+    initialImageUri: String? = null,
+    private val trigger: DataUpdateTrigger = DataUpdateTrigger()
 ) : UiReceiptReviewService {
 
     private val _pendingReceipt = MutableStateFlow<ReceiptCandidate?>(initialPendingReceipt)
@@ -84,6 +85,7 @@ class RealReceiptReviewService(
                 totalAmount = receipt.totalAmount,
                 items = itemDataList
             )
+            trigger.notifyChanged()
 
             // R-6: 保存後にレシート画像ファイルを削除し、端末内に残さない
             pendingImageUri?.let { uri ->

@@ -309,6 +309,25 @@ class RealReceiptReviewServiceTest {
     }
 
     @Test
+    fun `saveReceipt notifies the list so it shows the saved items`() = runTest {
+        val trigger = DataUpdateTrigger()
+        val service = RealReceiptReviewService(reminderRepository = fakeRepository, trigger = trigger)
+        val before = trigger.version.value
+
+        service.saveReceipt(
+            ReceiptCandidate(
+                id = "r1",
+                storeName = "スキャナーテスト店",
+                purchasedOn = LocalDate.of(2026, 10, 25),
+                totalAmount = 450,
+                items = listOf(ReceiptItemCandidate("i1", "シャンプー", "シャンプー", 1, 450))
+            )
+        )
+
+        assertTrue(trigger.version.value > before)
+    }
+
+    @Test
     fun `deleteImages removes every captured page`() {
         scanner.deleteImages(listOf("file:///scan/1.jpg", "file:///scan/2.jpg"))
         assertEquals(listOf("file:///scan/1.jpg", "file:///scan/2.jpg"), fakeOcrScanner.deletedImageUris)

@@ -101,7 +101,8 @@ class RealAppContainer(
         RealReceiptReviewService(
             reminderRepository = reminderRepository,
             ocrScanner = ocrScanner,
-            normalizer = productNormalizer
+            normalizer = productNormalizer,
+            trigger = trigger
         )
     }
 
