@@ -250,6 +250,15 @@ private fun ProductEmptyState() {
     }
 }
 
+/** 商品一覧の行の状態表示。履歴がない商品は詳細画面と同じ「購入履歴がないため予測できません」にする(B-4, P-5) */
+internal enum class ProductListStatusLabel { NO_HISTORY, UNTRACKED, PREDICTION }
+
+internal fun productListStatusLabel(product: Product): ProductListStatusLabel = when {
+    !product.hasPurchaseHistory -> ProductListStatusLabel.NO_HISTORY
+    !product.isTracked -> ProductListStatusLabel.UNTRACKED
+    else -> ProductListStatusLabel.PREDICTION
+}
+
 @Composable
 private fun ProductRow(product: Product, onClick: () -> Unit) {
     val statusIcon = when (product.status) {
@@ -307,10 +316,10 @@ private fun ProductRow(product: Product, onClick: () -> Unit) {
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
-                        text = if (product.isTracked) {
-                            productStatusText(product)
-                        } else {
-                            stringResource(R.string.product_list_item_untracked)
+                        text = when (productListStatusLabel(product)) {
+                            ProductListStatusLabel.NO_HISTORY -> stringResource(R.string.product_status_no_history)
+                            ProductListStatusLabel.UNTRACKED -> stringResource(R.string.product_list_item_untracked)
+                            ProductListStatusLabel.PREDICTION -> productStatusText(product)
                         },
                         color = statusColor,
                         fontSize = 13.sp,
@@ -320,7 +329,8 @@ private fun ProductRow(product: Product, onClick: () -> Unit) {
                     )
                 }
 
-                if (product.isTracked) {
+                // 目盛りは予測が出る商品(対象で、購入履歴がある)だけ
+                if (productDetailDisplay(product).showPrediction) {
                     Spacer(modifier = Modifier.height(1.dp))
                     StockLevelBar(product = product)
                 }

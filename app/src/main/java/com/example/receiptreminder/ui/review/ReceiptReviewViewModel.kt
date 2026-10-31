@@ -3,6 +3,7 @@ package com.example.receiptreminder.ui.review
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.receiptreminder.data.bridge.CapturedImageTracker
 import com.example.receiptreminder.domain.model.ReceiptCandidate
 import com.example.receiptreminder.domain.model.ReceiptItemCandidate
 import com.example.receiptreminder.domain.repository.ReceiptReviewService
@@ -33,7 +34,9 @@ data class ItemForm(
     val quantity: String = "1",
     val price: String = "",
     val isTracked: Boolean = true,
-    val mergedNotice: String? = null
+    val mergedNotice: String? = null,
+    /** 利用者が予測対象を自分で切り替えた行。以降は名前を直しても自動で変えない */
+    val trackedByUser: Boolean = false
 )
 
 /** 確認画面で編集中のレシート */
@@ -146,7 +149,8 @@ internal fun ReceiptForm.validate(): FormValidation {
  */
 class ReceiptReviewViewModel(
     private val scanner: ReceiptScanner,
-    private val service: ReceiptReviewService
+    private val service: ReceiptReviewService,
+    private val tracker: CapturedImageTracker = CapturedImageTracker.shared
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReceiptReviewUiState())
@@ -155,6 +159,7 @@ class ReceiptReviewViewModel(
     private var scanJob: Job? = null
     private var duplicateJob: Job? = null
     private var newItemCounter = 0
+    private val trackJobs = mutableMapOf<String, Job>()
     private var capturedImageUris: List<String> = emptyList()
 
     /** 撮影で得た画像を読み取る */
@@ -179,7 +184,23 @@ class ReceiptReviewViewModel(
     private fun deleteCapturedImages() {
         val uris = capturedImageUris
         capturedImageUris = emptyList()
-        if (uris.isNotEmpty()) scanner.deleteImages(uris)
+        if (uris.isEmpty()) return
+        try {
+            scanner.deleteImages(uris)
+        } finally {
+            tracker.release(uris)
+        }
+    }
+
+    /**
+     * 画面が閉じられた・タスクが消されたときも、撮影画像を端末に残さない(R-6)。
+     * 保存・取り消しで削除済みなら何もしない。
+     */
+    public override fun onCleared() {
+        scanJob?.cancel()
+        duplicateJob?.cancel()
+        deleteCapturedImages()
+        super.onCleared()
     }
 
     private fun recognize(imageUris: List<String>, captured: Boolean) {
@@ -187,7 +208,10 @@ class ReceiptReviewViewModel(
         scanJob?.cancel()
         duplicateJob?.cancel()
         deleteCapturedImages()
-        if (captured) capturedImageUris = imageUris
+        if (captured) {
+            capturedImageUris = imageUris
+            tracker.track(imageUris)
+        }
         _uiState.value = ReceiptReviewUiState(phase = ReviewPhase.Scanning)
         scanJob = viewModelScope.launch {
             val result = try {
@@ -256,7 +280,37 @@ class ReceiptReviewViewModel(
         refreshDuplicate()
     }
 
-    fun onItemNameChange(id: String, value: String) = editItem(id) { it.copy(name = value) }
+    fun onItemNameChange(id: String, value: String) {
+        editItem(id) { it.copy(name = value) }
+        refreshTracked(id, value)
+    }
+
+    /** 予測の対象にするかを商品ごとに切り替える(R-4, P-4) */
+    fun onItemTrackedChange(id: String, tracked: Boolean) {
+        trackJobs.remove(id)?.cancel()
+        editItem(id) { it.copy(isTracked = tracked, trackedByUser = true) }
+    }
+
+    /**
+     * 名前を直したら、辞書にある名前や登録済みの商品になったかで予測対象を決め直す。
+     * 利用者が自分で切り替えた行は変えない。
+     */
+    private fun refreshTracked(id: String, name: String) {
+        trackJobs.remove(id)?.cancel()
+        if (_uiState.value.form.items.firstOrNull { it.id == id }?.trackedByUser != false) return
+        trackJobs[id] = viewModelScope.launch {
+            val suggestion = try {
+                service.suggestTracked(name)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            } ?: return@launch
+            editItem(id) {
+                if (it.trackedByUser || it.name != name) it else it.copy(isTracked = suggestion)
+            }
+        }
+    }
     fun onItemQuantityChange(id: String, value: String) = editItem(id) { it.copy(quantity = value) }
     fun onItemPriceChange(id: String, value: String) = editItem(id) { it.copy(price = value) }
 
@@ -266,6 +320,7 @@ class ReceiptReviewViewModel(
     }
 
     fun removeItem(id: String) {
+        trackJobs.remove(id)?.cancel()
         editForm { f -> f.copy(items = f.items.filterNot { it.id == id }) }
     }
 

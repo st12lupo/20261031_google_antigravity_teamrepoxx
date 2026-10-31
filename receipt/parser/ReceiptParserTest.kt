@@ -285,4 +285,222 @@ class ReceiptParserTest {
         assertNotNull(unreadableResult)
         assertTrue(unreadableResult.items.isEmpty())
     }
+
+    private fun nameAndPrice(lines: List<String>) =
+        parser.parse(lines).items.map { it.rawName to it.price }
+
+    @Test
+    fun `address line is not an item`() {
+        val result = parser.parse(
+            listOf("架空マート", "東京都架空区1-2-3", "2026/10/31", "ｼｮｯｷｾﾝｻﾞｲ 198", "合計 198")
+        )
+        assertEquals(listOf("ｼｮｯｷｾﾝｻﾞｲ" to 198), result.items.map { it.rawName to it.price })
+        assertEquals("架空マート", result.storeName)
+    }
+
+    @Test
+    fun `address line without prefecture is not an item or store name`() {
+        val result = parser.parse(listOf("架空市架空町4-5-6", "架空ストア", "2026/10/31", "ﾄﾘﾑﾈﾆｸ 412", "合計 412"))
+        assertEquals(listOf("ﾄﾘﾑﾈﾆｸ" to 412), result.items.map { it.rawName to it.price })
+        assertEquals("架空ストア", result.storeName)
+    }
+
+    @Test
+    fun `total ignores tax and target lines after the total`() {
+        val result = parser.parse(
+            listOf(
+                "架空ストア", "2026/10/31",
+                "商品A 500", "商品B 500",
+                "合計 1000",
+                "消費税等合計 74",
+                "8%対象合計 600",
+                "10%対象合計 400"
+            )
+        )
+        assertEquals(1000, result.totalAmount)
+        assertEquals(2, result.items.size)
+    }
+
+    @Test
+    fun `products containing exclusion words are kept`() {
+        val lines = listOf(
+            "架空ストア", "2026/10/31",
+            "ポイントメイクリムーバー 880",
+            "釣り糸 500",
+            "レジャーシート 500",
+            "コーヒーNo.1 120",
+            "合計 2000"
+        )
+        assertEquals(
+            listOf("ポイントメイクリムーバー" to 880, "釣り糸" to 500, "レジャーシート" to 500, "コーヒーNo.1" to 120),
+            nameAndPrice(lines)
+        )
+    }
+
+    @Test
+    fun `label lines are still excluded`() {
+        val lines = listOf(
+            "架空ストア", "2026/10/31",
+            "商品A 300",
+            "ポイント残高 51P", "お釣り 279", "レジ#1", "No.123",
+            "kakuupay支払 ¥612", "伝票番号 111-111", "(商品代金 ¥623)",
+            "合計 300"
+        )
+        assertEquals(listOf("商品A" to 300), nameAndPrice(lines))
+    }
+
+    @Test
+    fun `quantity line without total multiplies unit price`() {
+        val result = parser.parse(
+            listOf("架空ストア", "2026/10/31", "ｷﾞｭｳﾆｭｳ 1L", "  2ｺ X 238", "合計 476")
+        )
+        assertEquals(1, result.items.size)
+        assertEquals(2.0, result.items[0].quantity, 0.001)
+        assertEquals(476, result.items[0].price)
+    }
+
+    @Test
+    fun `quantity on same line without total multiplies unit price`() {
+        val result = parser.parse(listOf("架空ストア", "2026/10/31", "ｷﾞｭｳﾆｭｳ 1L 2ｺ X238", "合計 476"))
+        assertEquals(1, result.items.size)
+        assertEquals("ｷﾞｭｳﾆｭｳ 1L", result.items[0].rawName)
+        assertEquals(2.0, result.items[0].quantity, 0.001)
+        assertEquals(476, result.items[0].price)
+    }
+
+    @Test
+    fun `date with spaces is read`() {
+        val result = parser.parse(listOf("架空ストア", "2026年 10月31日", "商品A 100", "合計 100"))
+        assertEquals(LocalDate.of(2026, 10, 31).toEpochDay(), result.purchasedOnEpochDay)
+        val spaced = parser.parse(listOf("架空ストア", "2026 / 10 / 31 14:00", "商品A 100", "合計 100"))
+        assertEquals(LocalDate.of(2026, 10, 31).toEpochDay(), spaced.purchasedOnEpochDay)
+    }
+
+    @Test
+    fun `phone numbers and invalid years are not dates`() {
+        val today = LocalDate.now().toEpochDay()
+        for (line in listOf("0120-12-34", "2999-12-31", "1999/12/31", "2026/13/45")) {
+            val r = parser.parse(listOf("架空ストア", line, "商品A 100", "合計 100"))
+            assertEquals(line, today, r.purchasedOnEpochDay)
+        }
+        val real = parser.parse(listOf("架空ストア", "0120-12-34", "2026/10/31", "商品A 100", "合計 100"))
+        assertEquals(LocalDate.of(2026, 10, 31).toEpochDay(), real.purchasedOnEpochDay)
+    }
+
+    @Test
+    fun `labels with okurigana are excluded and discount applies to previous item`() {
+        val lines = listOf(
+            "架空ストア", "2026/10/31",
+            "商品A 500",
+            "値引き -100",
+            "お支払い ¥1,000", "釣り銭 ¥120", "お預り金 ¥1,000", "税込み 1000", "税抜き 900",
+            "合計 400"
+        )
+        assertEquals(listOf("商品A" to 400), nameAndPrice(lines))
+    }
+
+    @Test
+    fun `summary and change lines are excluded and percent discount applies`() {
+        val lines = listOf(
+            "架空ストア", "2026/10/31",
+            "商品A 500", "商品B 300",
+            "20%引 -50",
+            "お買上計 1,000",
+            "8%対象 1000", "税額 80", "点数 3",
+            "お釣 120", "おつり 120", "つり銭 120"
+        )
+        val result = parser.parse(lines)
+        assertEquals(listOf("商品A" to 500, "商品B" to 250), result.items.map { it.rawName to it.price })
+        assertEquals(1000, result.totalAmount)
+    }
+
+    @Test
+    fun `products starting with prefecture names are kept but addresses are not`() {
+        val lines = listOf(
+            "架空ストア", "東京都架空区1-2-3", "架空県架空市架空町1丁目", "2026/10/31",
+            "北海道牛乳 198", "青森県産りんご 298", "静岡県産みかん 398",
+            "合計 894"
+        )
+        assertEquals(
+            listOf("北海道牛乳" to 198, "青森県産りんご" to 298, "静岡県産みかん" to 398),
+            nameAndPrice(lines)
+        )
+        assertEquals("架空ストア", parser.parse(lines).storeName)
+    }
+
+    @Test
+    fun `item with discount word in the name is a product and does not discount the previous item`() {
+        val lines = listOf(
+            "架空ストア", "2026/10/31",
+            "牛乳 200",
+            "お弁当 30%引 350",
+            "合計 550"
+        )
+        assertEquals(listOf("牛乳" to 200, "お弁当" to 350), nameAndPrice(lines))
+    }
+
+    @Test
+    fun `negative amount line discounts the previous item and leading percent off applies`() {
+        val lines = listOf(
+            "架空ストア", "2026/10/31",
+            "牛乳 200", "お弁当 350", "クーポン -100",
+            "パン 300", "30%引 -90",
+            "ポイント利用 -50",
+            "合計 660"
+        )
+        assertEquals(listOf("牛乳" to 200, "お弁当" to 250, "パン" to 210), nameAndPrice(lines))
+    }
+
+    @Test
+    fun `payment method and half width labels are excluded`() {
+        val lines = listOf(
+            "架空ストア", "2026/10/31",
+            "牛乳 200",
+            "電子マネー 1,000", "ｵﾂﾘ 800", "ｵｱｽﾞｶﾘ 1,000", "カード 1,000", "QR決済 1,000",
+            "バーコード決済 1,000", "QRコード決済 1,000", "カード決済 1,000", "ポイント対象 100",
+            "合計 200"
+        )
+        assertEquals(listOf("牛乳" to 200), nameAndPrice(lines))
+    }
+
+    @Test
+    fun `buy total label with okurigana is excluded from items and read as total`() {
+        val lines = listOf("架空ストア", "2026/10/31", "商品A 400", "商品B 600", "お買上げ計 1,000")
+        val result = parser.parse(lines)
+        assertEquals(listOf("商品A" to 400, "商品B" to 600), result.items.map { it.rawName to it.price })
+        assertEquals(1000, result.totalAmount)
+        val tax = parser.parse(listOf("架空ストア", "2026/10/31", "商品A 400", "税込合計 400", "お買上計 400"))
+        assertEquals(400, tax.totalAmount)
+        assertEquals(1, tax.items.size)
+    }
+
+    @Test
+    fun `total is not taken from point or deposit totals`() {
+        val result = parser.parse(
+            listOf(
+                "架空ストア", "2026/10/31",
+                "商品A 1000",
+                "合計 1,000",
+                "ポイント合計 5",
+                "お預り合計 2,000",
+                "お釣合計 1,000",
+                "現金合計 2,000"
+            )
+        )
+        assertEquals(1000, result.totalAmount)
+        assertEquals(listOf("商品A" to 1000), result.items.map { it.rawName to it.price })
+    }
+
+    @Test
+    fun `payment words inside product names are kept`() {
+        val lines = listOf(
+            "架空ストア", "2026/10/31",
+            "図書カード 500", "カードケース 300", "ポイントメイクリムーバー 880", "釣り糸 500", "レジャーシート 500",
+            "合計 2680"
+        )
+        assertEquals(
+            listOf("図書カード" to 500, "カードケース" to 300, "ポイントメイクリムーバー" to 880, "釣り糸" to 500, "レジャーシート" to 500),
+            nameAndPrice(lines)
+        )
+    }
 }

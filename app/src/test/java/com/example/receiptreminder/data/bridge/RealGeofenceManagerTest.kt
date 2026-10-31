@@ -84,13 +84,66 @@ class RealGeofenceManagerTest {
     }
 
     @Test
-    fun registerGeofence_handlesSecurityExceptionGracefully() = runTest {
+    fun registerGeofence_propagatesSecurityExceptionToCaller() = runTest {
         fakeDomainGeofenceManager.shouldThrowSecurityException = true
         val manager = createGeofenceManager()
         val store1 = storeRepository.registerCurrentLocation("スーパーA", 200)
 
-        // SecurityException が発生してもクラッシュしないこと
-        manager.registerGeofence(store1)
+        // 失敗を握りつぶさず呼び出し元(StoresViewModel)に伝える(GeofenceRegisterFailed の元)
+        try {
+            manager.registerGeofence(store1)
+            org.junit.Assert.fail("SecurityException が伝わるはず")
+        } catch (_: SecurityException) {
+        }
+    }
+
+    @Test
+    fun unregisterGeofence_propagatesFailure() = runTest {
+        val manager = createGeofenceManager()
+        val store1 = storeRepository.registerCurrentLocation("スーパーA", 200)
+        fakeDomainGeofenceManager.shouldThrowSecurityException = true
+
+        try {
+            manager.unregisterGeofence(store1.id)
+            org.junit.Assert.fail("例外が伝わるはず")
+        } catch (_: SecurityException) {
+        }
+    }
+
+    @Test
+    fun unregisterGeofence_afterNotifyOff_registersOnlyEnabledStores() = runTest {
+        val manager = createGeofenceManager()
+        val a = storeRepository.registerCurrentLocation("スーパーA", 200)
+        val b = storeRepository.registerCurrentLocation("スーパーB", 200)
+        storeRepository.updateStore(a.copy(notifyEnabled = false))
+
+        manager.unregisterGeofence(a.id)
+
+        assertEquals(listOf(b.id.toLong()), fakeDomainGeofenceManager.registeredStores.map { it.id })
+    }
+
+    @Test
+    fun recheckAllGeofences_afterReboot_registersAgain() = runTest {
+        val manager = createGeofenceManager()
+        val a = storeRepository.registerCurrentLocation("スーパーA", 200)
+        manager.registerGeofence(a)
+        // 再起動で端末側の登録が消えた状態
+        fakeDomainGeofenceManager.registeredStores.clear()
+
+        manager.recheckAllGeofences()
+
+        assertEquals(listOf(a.id.toLong()), fakeDomainGeofenceManager.registeredStores.map { it.id })
+    }
+
+    @Test
+    fun recheckAllGeofences_withNoActiveStores_unregistersAll() = runTest {
+        val manager = createGeofenceManager()
+        val a = storeRepository.registerCurrentLocation("スーパーA", 200)
+        storeRepository.updateStore(a.copy(notifyEnabled = false))
+
+        manager.recheckAllGeofences()
+
+        assertTrue(fakeDomainGeofenceManager.unregisterAllCalled)
     }
 
     @Test
@@ -127,6 +180,79 @@ class RealGeofenceManagerTest {
         // notifyEnabled == true の店舗のみが登録される
         assertEquals(1, fakeDomainGeofenceManager.registeredStores.size)
         assertEquals("スーパーA", fakeDomainGeofenceManager.registeredStores[0].name)
+    }
+
+    private var environment = "fine=true,bg=true,boot=1,upd=1"
+
+    private fun createGatedManager(gate: geofence.GeofenceSyncGate) = RealGeofenceManager(
+        context = null,
+        defaultGeofenceManager = fakeDomainGeofenceManager,
+        storeRepository = storeRepository,
+        shoppingListRepository = shoppingListRepository,
+        notificationSettingsRepository = notificationSettingsRepository,
+        currentTimeProvider = { currentTime },
+        todayProvider = { fixedToday },
+        syncGate = gate,
+        environmentProvider = { environment }
+    )
+
+    @Test
+    fun syncIfChanged_doesNotReRegisterWhenNothingChanged() = runTest {
+        val manager = createGatedManager(geofence.GeofenceSyncGate(geofence.InMemorySyncStateStore()))
+        storeRepository.registerCurrentLocation("スーパーA", 200)
+
+        manager.syncIfChanged()
+        assertEquals(1, fakeDomainGeofenceManager.registerCalls)
+        // アプリを開き直しても、店に入った直後の ENTER を失わないよう登録し直さない
+        manager.syncIfChanged()
+        manager.syncIfChanged()
+        assertEquals(1, fakeDomainGeofenceManager.registerCalls)
+    }
+
+    @Test
+    fun syncIfChanged_reRegistersWhenStoresOrPermissionChange() = runTest {
+        val manager = createGatedManager(geofence.GeofenceSyncGate(geofence.InMemorySyncStateStore()))
+        val a = storeRepository.registerCurrentLocation("スーパーA", 200)
+        manager.syncIfChanged()
+
+        environment = "fine=true,bg=false,boot=1,upd=1"
+        manager.syncIfChanged()
+        assertEquals(2, fakeDomainGeofenceManager.registerCalls)
+
+        storeRepository.updateStore(a.copy(radiusMeters = 400))
+        manager.syncIfChanged()
+        assertEquals(3, fakeDomainGeofenceManager.registerCalls)
+
+        environment = "fine=true,bg=false,boot=2,upd=1" // 端末の再起動
+        manager.syncIfChanged()
+        assertEquals(4, fakeDomainGeofenceManager.registerCalls)
+    }
+
+    @Test
+    fun recheckAllGeofences_alwaysReRegisters_evenWhenUnchanged() = runTest {
+        val manager = createGatedManager(geofence.GeofenceSyncGate(geofence.InMemorySyncStateStore()))
+        storeRepository.registerCurrentLocation("スーパーA", 200)
+        manager.syncIfChanged()
+        manager.recheckAllGeofences() // 再起動・更新
+        assertEquals(2, fakeDomainGeofenceManager.registerCalls)
+    }
+
+    @Test
+    fun failedSync_isRetriedOnNextStart() = runTest {
+        val manager = createGatedManager(geofence.GeofenceSyncGate(geofence.InMemorySyncStateStore()))
+        storeRepository.registerCurrentLocation("スーパーA", 200)
+        manager.syncIfChanged()
+
+        fakeDomainGeofenceManager.shouldThrowSecurityException = true
+        try {
+            manager.recheckAllGeofences()
+            org.junit.Assert.fail("例外が伝わるはず")
+        } catch (_: SecurityException) {
+        }
+        fakeDomainGeofenceManager.shouldThrowSecurityException = false
+        val before = fakeDomainGeofenceManager.registerCalls
+        manager.syncIfChanged()
+        assertEquals(before + 1, fakeDomainGeofenceManager.registerCalls)
     }
 
     @Test
@@ -203,8 +329,10 @@ class RealGeofenceManagerTest {
         val registeredStores = mutableListOf<DbStore>()
         var unregisterAllCalled = false
         var shouldThrowSecurityException = false
+        var registerCalls = 0
 
         override suspend fun registerGeofences(stores: List<DbStore>) {
+            registerCalls++
             if (shouldThrowSecurityException) {
                 throw SecurityException("Permission denied")
             }

@@ -26,5 +26,7 @@ data class ReceiptItemData(
     val normalizedName: String,
     val category: String = "日用品",
     val quantity: Double = 1.0,
-    val price: Int = 0
+    val price: Int = 0,
+    /** 予測の対象にするか。false でも購入履歴には残す(P-2, P-4) */
+    val isTracked: Boolean = true
 )

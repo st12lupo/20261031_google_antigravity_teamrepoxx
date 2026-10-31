@@ -1,5 +1,6 @@
 package data.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -15,14 +16,17 @@ data class ProductEntity(
     val name: String,
     val category: String = "日用品",
     val isTracked: Boolean = true,
-    val snoozedUntilEpochDay: Long? = null
+    val snoozedUntilEpochDay: Long? = null,
+    @ColumnInfo(defaultValue = "0")
+    val stoppedByUser: Boolean = false
 ) {
     fun toDomain(): Product = Product(
         id = id,
         name = name,
         category = category,
         isTracked = isTracked,
-        snoozedUntilEpochDay = snoozedUntilEpochDay
+        snoozedUntilEpochDay = snoozedUntilEpochDay,
+        stoppedByUser = stoppedByUser
     )
 
     companion object {
@@ -31,7 +35,8 @@ data class ProductEntity(
             name = domain.name,
             category = domain.category,
             isTracked = domain.isTracked,
-            snoozedUntilEpochDay = domain.snoozedUntilEpochDay
+            snoozedUntilEpochDay = domain.snoozedUntilEpochDay,
+            stoppedByUser = domain.stoppedByUser
         )
     }
 }

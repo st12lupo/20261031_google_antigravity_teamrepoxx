@@ -3,6 +3,7 @@ package com.example.receiptreminder.di
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.receiptreminder.data.bridge.DataUpdateTrigger
+import com.example.receiptreminder.data.bridge.LearnedAliasStore
 import com.example.receiptreminder.data.bridge.RealGeofenceManager
 import com.example.receiptreminder.data.bridge.RealNotificationSettingsRepository
 import com.example.receiptreminder.data.bridge.RealProductRepository
@@ -20,15 +21,24 @@ import com.example.receiptreminder.domain.repository.ReceiptScanner
 import com.example.receiptreminder.domain.repository.ShoppingListRepository
 import com.example.receiptreminder.domain.repository.StoreRepository
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import data.AppDatabase
+import androidx.room.withTransaction
 import data.DefaultReminderRepository
+import data.TransactionRunner
 import domain.repository.ReminderRepository
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.json.JSONArray
+import kotlinx.coroutines.withTimeoutOrNull
 import receipt.normalize.DefaultProductNormalizer
 import receipt.normalize.DictionaryEntry
+import receipt.normalize.ProductDictionaryLoader
+import prediction.DefaultConsumptionPredictor
 import receipt.parser.DefaultReceiptParser
 import receipt.scan.DefaultReceiptScanner
+import geofence.GeofenceSyncGate
+import geofence.PrefsSyncStateStore
+import geofence.geofenceEnvironment
 import kotlin.coroutines.resume
 
 /**
@@ -47,7 +57,11 @@ class RealAppContainer(
             productDao = database.productDao(),
             purchaseDao = database.purchaseDao(),
             receiptDao = database.receiptDao(),
-            storeDao = database.storeDao()
+            storeDao = database.storeDao(),
+            transactionRunner = object : TransactionRunner {
+                override suspend fun <T> run(block: suspend () -> T): T =
+                    database.withTransaction { block() }
+            }
         )
     }
 
@@ -55,16 +69,28 @@ class RealAppContainer(
         RealNotificationSettingsRepository(sharedPreferences = sharedPreferences)
     }
 
+    /** 辞書の既定周期をカテゴリ別に反映した予測器(F-3)。辞書にないカテゴリは予測器の既定値のまま */
+    private val consumptionPredictor: DefaultConsumptionPredictor by lazy {
+        DefaultConsumptionPredictor(
+            DefaultConsumptionPredictor.DEFAULT_CATEGORY_CYCLES +
+                ProductDictionaryLoader.categoryCycleDays(productDictionary)
+        )
+    }
+
     override val shoppingListRepository: ShoppingListRepository by lazy {
         RealShoppingListRepository(
             reminderRepository = reminderRepository,
-            trigger = trigger
+            consumptionPredictor = consumptionPredictor,
+            trigger = trigger,
+            normalizer = productNormalizer,
+            aliasStore = learnedAliasStore
         )
     }
 
     override val productRepository: ProductRepository by lazy {
         RealProductRepository(
             reminderRepository = reminderRepository,
+            consumptionPredictor = consumptionPredictor,
             trigger = trigger
         )
     }
@@ -80,7 +106,8 @@ class RealAppContainer(
         RealStoreRepository(
             reminderRepository = reminderRepository,
             currentLocationProvider = { getCurrentLocation(context) },
-            trigger = trigger
+            trigger = trigger,
+            onClearAllData = { learnedAliasStore.clear() }
         )
     }
 
@@ -88,9 +115,17 @@ class RealAppContainer(
         DefaultReceiptScanner(context)
     }
 
+    private val productDictionary: List<DictionaryEntry> by lazy {
+        loadProductDictionaryFromAssets(context)
+    }
+
     private val productNormalizer: DefaultProductNormalizer by lazy {
-        val dictionary = loadProductDictionaryFromAssets(context)
-        DefaultProductNormalizer(initialDictionary = dictionary)
+        DefaultProductNormalizer(initialDictionary = productDictionary)
+    }
+
+    /** 確認画面の修正から覚えた別名の保存と読み込み(P-2) */
+    private val learnedAliasStore: LearnedAliasStore by lazy {
+        LearnedAliasStore(reminderRepository, productNormalizer)
     }
 
     private val receiptParser: DefaultReceiptParser by lazy {
@@ -102,7 +137,8 @@ class RealAppContainer(
             reminderRepository = reminderRepository,
             ocrScanner = ocrScanner,
             normalizer = productNormalizer,
-            trigger = trigger
+            trigger = trigger,
+            aliasStore = learnedAliasStore
         )
     }
 
@@ -120,7 +156,9 @@ class RealAppContainer(
             context = context,
             storeRepository = storeRepository,
             shoppingListRepository = shoppingListRepository,
-            notificationSettingsRepository = notificationSettingsRepository
+            notificationSettingsRepository = notificationSettingsRepository,
+            syncGate = GeofenceSyncGate(PrefsSyncStateStore.of(context)),
+            environmentProvider = { geofenceEnvironment(context) }
         )
     }
 
@@ -131,49 +169,49 @@ class RealAppContainer(
         fun loadProductDictionaryFromAssets(context: Context): List<DictionaryEntry> {
             return try {
                 val jsonString = context.assets.open("products.json").bufferedReader().use { it.readText() }
-                val jsonArray = JSONArray(jsonString)
-                val entries = mutableListOf<DictionaryEntry>()
-                for (i in 0 until jsonArray.length()) {
-                    val obj = jsonArray.getJSONObject(i)
-                    val name = obj.getString("name")
-                    val category = obj.optString("category", "日用品")
-                    val keywordsArray = obj.optJSONArray("keywords")
-                    val keywords = mutableListOf<String>()
-                    if (keywordsArray != null) {
-                        for (j in 0 until keywordsArray.length()) {
-                            keywords.add(keywordsArray.getString(j))
-                        }
-                    }
-                    entries.add(DictionaryEntry(name, category, keywords))
-                }
+                val entries = ProductDictionaryLoader.parse(jsonString)
                 if (entries.isNotEmpty()) entries else DefaultProductNormalizer.defaultProductDictionary()
             } catch (_: Exception) {
                 DefaultProductNormalizer.defaultProductDictionary()
             }
         }
 
+        /** この時間より古い最終位置は店舗の登録に使わない */
+        internal const val MAX_CACHED_LOCATION_AGE_MS = 30_000L
+        private const val CURRENT_LOCATION_TIMEOUT_MS = 15_000L
+
         /**
-         * FusedLocationProviderClient から現在地を取得する。
-         * 権限拒否時やエラー時はクラッシュせず既定座標（東京駅）を返す。
+         * 現在地を取得する。高精度の現在地取得を優先し、取れないときは新しい最終位置だけを使う。
+         * どちらも取れない・権限がないときは null を返す(既定の座標にはしない)。
          */
         private suspend fun getCurrentLocation(context: Context): Pair<Double, Double>? {
             return try {
                 val client = LocationServices.getFusedLocationProviderClient(context)
-                val location = suspendCancellableCoroutine<android.location.Location?> { cont ->
+                val fresh = withTimeoutOrNull(CURRENT_LOCATION_TIMEOUT_MS) {
+                    suspendCancellableCoroutine<android.location.Location?> { cont ->
+                        val source = CancellationTokenSource()
+                        cont.invokeOnCancellation { source.cancel() }
+                        client.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, source.token)
+                            .addOnSuccessListener { if (cont.isActive) cont.resume(it) }
+                            .addOnFailureListener { if (cont.isActive) cont.resume(null) }
+                            .addOnCanceledListener { if (cont.isActive) cont.resume(null) }
+                    }
+                }
+                val location = fresh ?: suspendCancellableCoroutine<android.location.Location?> { cont ->
                     client.lastLocation
-                        .addOnSuccessListener { cont.resume(it) }
-                        .addOnFailureListener { cont.resume(null) }
-                }
-                if (location != null) {
-                    location.latitude to location.longitude
-                } else {
-                    35.6812 to 139.7671
-                }
-            } catch (_: SecurityException) {
-                35.6812 to 139.7671
+                        .addOnSuccessListener { if (cont.isActive) cont.resume(it) }
+                        .addOnFailureListener { if (cont.isActive) cont.resume(null) }
+                }?.takeIf { isRecentEnough(it.time, System.currentTimeMillis()) }
+                location?.let { it.latitude to it.longitude }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (_: Exception) {
-                35.6812 to 139.7671
+                null
             }
         }
+
+        /** 最終位置が使えるほど新しいか */
+        internal fun isRecentEnough(locationTimeMs: Long, nowMs: Long): Boolean =
+            nowMs - locationTimeMs in 0..MAX_CACHED_LOCATION_AGE_MS
     }
 }

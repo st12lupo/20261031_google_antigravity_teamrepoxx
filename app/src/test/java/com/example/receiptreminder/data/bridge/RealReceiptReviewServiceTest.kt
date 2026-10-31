@@ -80,7 +80,7 @@ class RealReceiptReviewServiceTest {
     }
 
     @Test
-    fun `saveReceipt saves tracked items to repository and clears pending receipt and deletes image (R-6)`() = runTest {
+    fun `saveReceipt saves tracked and untracked items to repository and clears pending receipt and deletes image (R-6)`() = runTest {
         val date = LocalDate.of(2026, 10, 30)
         val dummyImageUri = "file:///tmp/receipt_image_001.jpg"
 
@@ -123,12 +123,15 @@ class RealReceiptReviewServiceTest {
         assertEquals(date.toEpochDay(), savedReceipt.purchasedOnEpochDay)
         assertEquals(880, savedReceipt.totalAmount)
 
-        // 追跡対象(isTracked == true)のみがアイテムとして保存されていること
-        assertEquals(1, fakeRepository.savedItems.size)
-        val savedItem = fakeRepository.savedItems.first()
-        assertEquals("牛乳", savedItem.normalizedName)
+        // 予測対象外の商品も購入履歴として保存され、isTracked の指定が引き継がれること(P-2, P-4)
+        assertEquals(2, fakeRepository.savedItems.size)
+        val savedItem = fakeRepository.savedItems.first { it.normalizedName == "牛乳" }
         assertEquals(2.0, savedItem.quantity, 0.0)
         assertEquals(400, savedItem.price)
+        assertTrue(savedItem.isTracked)
+        val untrackedItem = fakeRepository.savedItems.first { it.normalizedName == "雑誌" }
+        assertEquals(480, untrackedItem.price)
+        assertFalse(untrackedItem.isTracked)
 
         // R-6: 元画像が削除されたこと
         assertTrue(fakeOcrScanner.deletedImageUris.contains(dummyImageUri))
@@ -362,6 +365,11 @@ private class FakeTestReminderRepository : ReminderRepository {
         if (idx >= 0) {
             products[idx] = products[idx].copy(isTracked = isTracked)
         }
+    }
+
+    override suspend fun stopTracking(productId: Long) {
+        val idx = products.indexOfFirst { it.id == productId }
+        if (idx >= 0) products[idx] = products[idx].copy(isTracked = false, stoppedByUser = true)
     }
 
     override suspend fun snoozeProduct(productId: Long, extraDays: Long) {}

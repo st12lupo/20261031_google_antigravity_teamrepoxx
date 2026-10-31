@@ -21,8 +21,23 @@ class FakeGeofenceManagerTest {
         geofenceManager = FakeGeofenceManager(
             storeRepository = storeRepository,
             shoppingListRepository = shoppingListRepository,
-            notificationSettingsRepository = notificationSettingsRepository
+            notificationSettingsRepository = notificationSettingsRepository,
+            // 実時刻に依存しないよう、通知時間帯内(8〜21 時)の時刻に固定する
+            currentTimeProvider = { java.time.LocalTime.of(12, 0) }
         )
+    }
+
+    @Test
+    fun simulateStoreVisit_doesNotTriggerOutsideTimeRange() = runTest {
+        val manager = FakeGeofenceManager(
+            storeRepository = storeRepository,
+            shoppingListRepository = shoppingListRepository,
+            notificationSettingsRepository = notificationSettingsRepository,
+            currentTimeProvider = { java.time.LocalTime.of(23, 0) }
+        )
+        val store = storeRepository.getStoresStream().first().first { it.notifyEnabled }
+
+        assertFalse(manager.simulateStoreVisit(store.id))
     }
 
     @Test

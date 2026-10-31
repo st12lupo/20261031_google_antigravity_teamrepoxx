@@ -177,4 +177,98 @@ class ConsumptionPredictorTest {
         // 50日の2割 = 10日 -> 7日に丸められる
         assertEquals(7L, predictor.calculateBufferDays(50.0))
     }
+
+    private fun p(id: Long, day: Long, qty: Double = 1.0, product: Long = 1) =
+        Purchase(id = id, productId = product, purchasedOnEpochDay = day, quantity = qty)
+
+    @Test
+    fun predict_sameDayRows_singlePurchase_areMergedIntoOneQuantity() {
+        // F-2: 牛乳 1 個の行が同じ日に 2 つ -> 数量 2 の購入 1 回。切れる日は 周期 × 2
+        val product = Product(id = 1, name = "牛乳", category = "飲料・乳製品")
+        val purchases = listOf(p(1, today - 3), p(2, today - 3))
+
+        val result = predictor.predict(product, purchases, today)
+
+        assertEquals(1, result.totalPurchases)
+        assertTrue(result.isEstimatedCycle)
+        assertEquals(7.0, result.cycleDaysPerUnit, 0.001)
+        // (today - 3) + 7 * 2 = today + 11
+        assertEquals(11L, result.remainingDays)
+    }
+
+    @Test
+    fun predict_sameDayRows_inHistory_doNotBreakCycle() {
+        // F-1: day-30 に 1 個、day-20 に 1 個の行が 2 つ(合計 2 個)、day-0 に 1 個。
+        // 合算すると 10/1 と 20/2 で周期 10。合算しないと 0 日間隔を捨てて 20/1 が混ざり周期が狂う
+        val product = Product(id = 1, name = "牛乳", category = "飲料・乳製品")
+        val purchases = listOf(
+            p(1, today - 30), p(2, today - 20), p(3, today - 20), p(4, today)
+        )
+
+        val result = predictor.predict(product, purchases, today)
+
+        assertEquals(3, result.totalPurchases)
+        assertFalse(result.isEstimatedCycle)
+        assertEquals(10.0, result.cycleDaysPerUnit, 0.001)
+        assertEquals(10L, result.remainingDays)
+    }
+
+    @Test
+    fun predict_sameDayRows_orderDoesNotMatter() {
+        val product = Product(id = 1, name = "牛乳", category = "飲料・乳製品")
+        val a = predictor.predict(product, listOf(p(3, today), p(2, today - 20), p(1, today - 20), p(0, today - 30)), today)
+        val b = predictor.predict(product, listOf(p(0, today - 30), p(1, today - 20), p(2, today - 20), p(3, today)), today)
+        assertEquals(a.cycleDaysPerUnit, b.cycleDaysPerUnit, 0.0)
+        assertEquals(a.remainingDays, b.remainingDays)
+    }
+
+    @Test
+    fun predict_differentProductsOnSameDay_areNotMerged() {
+        val product = Product(id = 1, name = "牛乳", category = "飲料・乳製品")
+        val purchases = listOf(p(1, today - 3, product = 1), p(2, today - 3, product = 2))
+
+        val result = predictor.predict(product, purchases, today)
+
+        // 商品 1 だけ(数量 1)なので 7 日周期
+        assertEquals(4L, result.remainingDays)
+    }
+
+    @Test
+    fun predict_bufferUsesCyclePerUnit_notCycleTimesQuantity() {
+        // F-4: 周期 10 日 × 3 個。判定幅は 周期(1 個あたり)の 2 割 = 2 日(旧実装は 30 日の 2 割 = 6 日)
+        val product = Product(id = 1, name = "洗剤", category = "日用品")
+        fun result(remaining: Long) = predictor.predict(
+            product,
+            listOf(p(1, today - 10 - (30 - remaining)), p(2, today - (30 - remaining), qty = 3.0)),
+            today
+        )
+
+        val inside = result(2)
+        assertEquals(10.0, inside.cycleDaysPerUnit, 0.001)
+        assertEquals(2L, inside.bufferDays)
+        assertEquals(2L, inside.remainingDays)
+        assertTrue(inside.isRunningOut)
+        assertEquals(PredictionStatus.RUNNING_OUT, inside.status)
+
+        val outside = result(3)
+        assertEquals(3L, outside.remainingDays)
+        assertEquals(2L, outside.bufferDays)
+        assertFalse(outside.isRunningOut)
+        assertEquals(PredictionStatus.SUFFICIENT, outside.status)
+    }
+
+    @Test
+    fun predict_bufferIsClampedForCyclePerUnit() {
+        // 周期 50 日 × 1 個 -> 上限 7 日。周期 5 日 × 10 個 -> 下限 2 日(旧実装は 7 日)
+        val product = Product(id = 1, name = "米", category = "米")
+        val long = predictor.predict(product, listOf(p(1, today - 100), p(2, today - 50)), today)
+        assertEquals(7L, long.bufferDays)
+        val short = predictor.predict(
+            product,
+            listOf(p(1, today - 15), p(2, today - 10), p(3, today - 5, qty = 10.0)),
+            today
+        )
+        assertEquals(5.0, short.cycleDaysPerUnit, 0.001)
+        assertEquals(2L, short.bufferDays)
+    }
 }

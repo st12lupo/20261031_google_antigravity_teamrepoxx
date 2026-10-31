@@ -197,6 +197,24 @@ fun ProductDetailScreen(
     }
 }
 
+/**
+ * 商品詳細に何を出すか。購入履歴がない商品は予測がないので、切れる日・周期・残りの目盛り・
+ * 「まだある」を出さず、チップも「対象外」ではなく履歴がないことを示す。
+ */
+internal data class ProductDetailDisplay(
+    val showPrediction: Boolean,
+    val showSnooze: Boolean,
+    val showUntrackedBadge: Boolean,
+    val noHistory: Boolean
+)
+
+internal fun productDetailDisplay(product: Product): ProductDetailDisplay = ProductDetailDisplay(
+    showPrediction = product.isTracked && product.hasPurchaseHistory,
+    showSnooze = product.hasPurchaseHistory,
+    showUntrackedBadge = !product.isTracked,
+    noHistory = !product.hasPurchaseHistory
+)
+
 private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
     product: Product,
     purchases: List<PurchaseRecord>,
@@ -208,6 +226,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
     onDelete: (String) -> Unit,
     onTrackedChange: (Boolean) -> Unit
 ) {
+    val display = productDetailDisplay(product)
     item {
         CardColumn {
             Column(
@@ -240,7 +259,11 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
                             val statusColor = productStatusColor(product)
                             val chipShape = RoundedCornerShape(10.dp)
                             Text(
-                                text = productStatusText(product),
+                                text = if (display.noHistory) {
+                                    stringResource(R.string.product_status_no_history)
+                                } else {
+                                    productStatusText(product)
+                                },
                                 color = statusColor,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
@@ -249,20 +272,20 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
                                     .border(1.dp, statusColor.copy(alpha = 0.28f), chipShape)
                                     .padding(horizontal = 10.dp, vertical = 4.dp)
                             )
-                            if (!product.isTracked) {
+                            if (display.showUntrackedBadge) {
                                 SmallBadge(stringResource(R.string.product_badge_untracked))
                             }
                         }
                     }
                 }
-                if (product.isTracked) {
+                if (display.showPrediction) {
                     StockLevelBar(product = product)
                 }
             }
         }
     }
 
-    if (product.isTracked) {
+    if (display.showPrediction) {
         item {
             CardColumn {
                 DetailRow(
@@ -306,21 +329,23 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(stringResource(R.string.product_action_purchased))
             }
-            OutlinedButton(
-                onClick = onSnooze,
-                enabled = product.isTracked,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Schedule,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(stringResource(R.string.product_action_snooze))
+            if (display.showSnooze) {
+                OutlinedButton(
+                    onClick = onSnooze,
+                    enabled = product.isTracked,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Schedule,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.product_action_snooze))
+                }
             }
         }
     }

@@ -68,6 +68,8 @@ class RealReceiptScanner(
         }
 
     private suspend fun createCandidate(ocrLines: List<String>, pendingImageUri: String?): ReceiptCandidate {
+        // 覚えた別名を名寄せに使えるよう、最初の一度だけ Room から読み込む(P-2)
+        reviewService?.ensureAliasesLoaded()
         val parsed = parser.parse(ocrLines)
         if (parsed.items.isEmpty()) throw IllegalStateException("商品を読み取れませんでした")
         val purchasedOn = LocalDate.ofEpochDay(parsed.purchasedOnEpochDay)
@@ -87,7 +89,11 @@ class RealReceiptScanner(
                 normalizedName = normResult.normalizedName,
                 quantity = item.quantity.toInt().coerceAtLeast(1),
                 price = item.price,
-                isTracked = normResult.isMatchedInDictionary,
+                // 既定の判定は確認画面で名前を直したときと同じ 1 か所(TrackingDefault)を通す。
+                // 未登録は辞書に一致するときだけ対象(P-3)。登録済みは予測対象のまま、または「もう買わない」で
+                // 外した商品だけ対象に戻す(F-6)。辞書にない商品を OFF で保存した場合は対象外のまま(P-4)
+                isTracked = reviewService?.defaultTracked(normResult.normalizedName, normResult.isMatchedInDictionary)
+                    ?: normResult.isMatchedInDictionary,
                 mergedNotice = null
             )
         }

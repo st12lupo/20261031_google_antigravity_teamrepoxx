@@ -39,10 +39,10 @@ class FakeStoreRepositoryTest {
 
     @Test
     fun registerCurrentLocation_addsNewStore() = runTest {
-        val newStore = storeRepository.registerCurrentLocation("ライフ 渋谷店", radiusMeters = 250)
+        val newStore = storeRepository.registerCurrentLocation("架空ストア 桜町店", radiusMeters = 250)
         val stores = storeRepository.getStoresStream().first()
 
-        assertEquals("ライフ 渋谷店", newStore.name)
+        assertEquals("架空ストア 桜町店", newStore.name)
         assertEquals(4, stores.size)
         assertEquals(newStore.id, stores[0].id)
     }

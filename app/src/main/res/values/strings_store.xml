@@ -8,6 +8,7 @@
     <string name="store_empty_title">店舗が登録されていません</string>
     <string name="store_empty_body">店舗の近くで通知を受け取るには、店舗の中や入口で「現在地を店舗として登録」を押してください。</string>
     <string name="store_radius_label">通知する範囲 半径 %1$dm</string>
+    <string name="store_notify_checkbox_label">通知</string>
     <string name="store_notify_off_label">通知オフ</string>
     <string name="store_notify_toggle_description">%1$sの通知</string>
     <string name="store_edit">変更</string>

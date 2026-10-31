@@ -28,4 +28,12 @@ interface ShoppingListRepository {
         price: Int? = null,
         storeName: String? = null
     )
+
+    /** 商品 ID を指定した購入の記録(詳細画面から)。名前の解決はしない。「もう買わない」の商品だけ対象に戻す */
+    suspend fun addPurchaseForProduct(
+        productId: String,
+        purchasedOn: LocalDate,
+        quantity: Int = 1,
+        price: Int? = null
+    )
 }

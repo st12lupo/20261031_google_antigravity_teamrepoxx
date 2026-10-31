@@ -54,7 +54,7 @@ android {
         }
     }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        if (name == "compileDebugKotlin") {
+        if (!name.contains("Test")) {
             exclude("**/*Test.kt")
         }
     }

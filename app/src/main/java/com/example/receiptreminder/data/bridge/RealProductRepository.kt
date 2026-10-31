@@ -32,18 +32,7 @@ class RealProductRepository(
         products.map { domainProduct ->
             val purchases = purchasesByProduct[domainProduct.id] ?: emptyList()
             val prediction = consumptionPredictor.predict(domainProduct, purchases, todayEpochDay)
-            val predictedOutDate = LocalDate.ofEpochDay(prediction.predictedOutOfStockOnEpochDay)
-            UiProduct(
-                id = domainProduct.id.toString(),
-                name = domainProduct.name,
-                category = domainProduct.category,
-                isTracked = domainProduct.isTracked,
-                isEstimated = prediction.isEstimatedCycle,
-                cycleDays = prediction.cycleDaysPerUnit,
-                predictedOutDate = predictedOutDate,
-                becameLowDate = null,
-                remainingDays = prediction.remainingDays.toInt()
-            )
+            prediction.toUiProduct()
         }
     }
 
@@ -53,18 +42,7 @@ class RealProductRepository(
         val purchases = reminderRepository.getPurchasesForProduct(productId)
         val today = todayProvider()
         val prediction = consumptionPredictor.predict(domainProduct, purchases, today.toEpochDay())
-        val predictedOutDate = LocalDate.ofEpochDay(prediction.predictedOutOfStockOnEpochDay)
-        return UiProduct(
-            id = domainProduct.id.toString(),
-            name = domainProduct.name,
-            category = domainProduct.category,
-            isTracked = domainProduct.isTracked,
-            isEstimated = prediction.isEstimatedCycle,
-            cycleDays = prediction.cycleDaysPerUnit,
-            predictedOutDate = predictedOutDate,
-            becameLowDate = null,
-            remainingDays = prediction.remainingDays.toInt()
-        )
+        return prediction.toUiProduct()
     }
 
     override fun getProductPurchasesStream(productId: String): Flow<List<PurchaseRecord>> = trigger.version.map {

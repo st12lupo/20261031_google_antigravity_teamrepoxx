@@ -31,6 +31,13 @@ class ProductNormalizerTest {
     }
 
     @Test
+    fun `cleanText keeps a fullwidth hyphen after kana as a long vowel mark`() {
+        assertEquals("シャンプー", normalizer.cleanText("シャンプ－"))
+        assertEquals("シャンプー", normalizer.cleanText("ｼｬﾝﾌﾟｰ"))
+        assertEquals("シャンプー", normalizer.cleanText("シャンプ―"))
+    }
+
+    @Test
     fun `normalize matches half width kana abbreviation to dictionary entry`() {
         val result = normalizer.normalize("ｼｮｯｷｾﾝｻﾞｲ")
         assertEquals("食器用洗剤", result.normalizedName)
@@ -72,5 +79,53 @@ class ProductNormalizerTest {
         val result = normalizer.normalize("未知のアイテムXYZ 100g")
         assertEquals("未知のアイテムXYZ", result.normalizedName)
         assertFalse(result.isMatchedInDictionary)
+    }
+
+    @Test
+    fun `cleanText keeps a count that is followed by more of the name (R-4)`() {
+        assertEquals("1本満足バー", normalizer.cleanText("1本満足バー"))
+        assertEquals("5本指ソックス", normalizer.cleanText("5本指ソックス"))
+        assertEquals("3枚切り食パン", normalizer.cleanText("3枚切り食パン"))
+    }
+
+    @Test
+    fun `cleanText removes unit with iri, iri, kumi, pack suffix at the end of a word (cleanText fix 4)`() {
+        assertEquals("マスク", normalizer.cleanText("マスク 50枚入"))
+        assertEquals("マスク", normalizer.cleanText("マスク 30枚入"))
+        assertEquals(normalizer.cleanText("マスク 50枚入"), normalizer.cleanText("マスク 30枚入"))
+        assertEquals("サンプル", normalizer.cleanText("サンプル 3個入り"))
+        assertEquals("サンプル", normalizer.cleanText("サンプル 3本入"))
+        assertEquals("サンプル", normalizer.cleanText("サンプル 3本組"))
+        assertEquals("サンプル", normalizer.cleanText("サンプル 3本入り"))
+        assertEquals("サンプル", normalizer.cleanText("サンプル 2枚パック"))
+        assertEquals("マスク", normalizer.cleanText("マスク50枚入"))
+        assertEquals("マスク 箱", normalizer.cleanText("マスク 50枚入 箱"))
+        // 単位の直後に名前が続くものは残す
+        assertEquals("1本満足バー", normalizer.cleanText("1本満足バー"))
+        assertEquals("5本指ソックス", normalizer.cleanText("5本指ソックス"))
+        assertEquals("3本組みひも", normalizer.cleanText("3本組みひも"))
+        assertEquals("ヨガマット", normalizer.cleanText("ヨガマット 3個入"))
+        assertEquals("架空コーラゼロ", normalizer.cleanText("架空コーラゼロ500P"))
+    }
+
+    @Test
+    fun `cleanText still removes a trailing or space-separated unit (R-4)`() {
+        assertEquals("トイレットペーパー", normalizer.cleanText("ﾄｲﾚｯﾄﾍﾟｰﾊﾟｰ 12R"))
+        assertEquals("ヨガマット", normalizer.cleanText("ヨガマット 3個入"))
+        assertEquals("架空コーラゼロ", normalizer.cleanText("架空コーラゼロ500P"))
+        assertEquals("架空コーラ ゼロ", normalizer.cleanText("架空コーラ 500ml ゼロ"))
+        assertEquals("架空ジュース", normalizer.cleanText("架空ジュース 500ml"))
+        assertEquals("トイレットペーパー", normalizer.cleanText("トイレットペーパー12ロール"))
+    }
+
+    @Test
+    fun `removeAlias returns the target and forgets the alias`() {
+        val n = DefaultProductNormalizer()
+        n.registerAlias("特売牛乳", "牛乳")
+        assertEquals("牛乳", n.normalize("特売牛乳").normalizedName)
+
+        assertEquals("牛乳", n.removeAlias("特売牛乳"))
+        assertEquals("特売牛乳", n.normalize("特売牛乳").normalizedName)
+        assertEquals(null, n.removeAlias("特売牛乳"))
     }
 }

@@ -19,6 +19,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -39,10 +40,30 @@ import com.example.receiptreminder.ui.store.StoresScreen
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    /** 通知タップが既存の画面に届くたびに増える。増えたら買い物リストへ移る(S-7) */
+    openShoppingListRequests: Int = 0
 ) {
+    // 初回(0)は開始画面が買い物リストなので何もしない。タスクを作り直さず移るだけにする
+    LaunchedEffect(openShoppingListRequests) {
+        if (openShoppingListRequests > 0) {
+            when (shoppingListNavMode(navController.currentBackStackEntry?.destination?.route)) {
+                ShoppingListNavMode.AlreadyThere -> Unit
+                // 確認画面の編集中は閉じずに上へ積む。戻るで確認画面に戻れる
+                ShoppingListNavMode.PushOnTop ->
+                    navController.navigate(Screen.ShoppingList.route) { launchSingleTop = true }
+                ShoppingListNavMode.PopToList ->
+                    navController.navigate(Screen.ShoppingList.route) {
+                        popUpTo(Screen.ShoppingList.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+            }
+        }
+    }
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val previousRoute = navController.previousBackStackEntry?.destination?.route
 
     val bottomNavItems = listOf(
         Screen.ShoppingList,
@@ -51,12 +72,8 @@ fun AppNavigation(
     )
 
     // レシート確認画面や権限説明画面などではボトムバーを非表示にする
-    val showBottomBar = currentRoute in listOf(
-        Screen.ShoppingList.route,
-        Screen.ProductList.route,
-        Screen.ProductDetail.route,
-        Screen.Stores.route
-    )
+    // 確認画面の上に積んだ買い物リストでも隠す(タブで確認画面が閉じられるのを防ぐ)
+    val showBottomBar = shouldShowBottomBar(currentRoute, previousRoute)
 
     Scaffold(
         bottomBar = {

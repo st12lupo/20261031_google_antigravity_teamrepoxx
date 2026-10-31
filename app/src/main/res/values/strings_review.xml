@@ -25,6 +25,7 @@
     <string name="review_item_tracked">予測の対象</string>
     <string name="review_item_untracked">予測の対象外</string>
     <string name="review_item_tracked_with_notice">予測の対象・%1$s</string>
+    <string name="review_item_track_toggle">予測の対象にする</string>
     <string name="review_item_delete">この商品を削除</string>
     <string name="review_add_item">商品を追加</string>
     <string name="review_image_deleted_notice">保存するとレシートの画像は削除されます。</string>
