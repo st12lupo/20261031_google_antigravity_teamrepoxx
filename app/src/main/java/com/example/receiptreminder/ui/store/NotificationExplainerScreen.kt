@@ -1,16 +1,31 @@
 package com.example.receiptreminder.ui.store
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.receiptreminder.ui.theme.PrimaryGreen
+import com.example.receiptreminder.R
 
 @Composable
 fun NotificationExplainerScreen(
@@ -27,7 +42,7 @@ fun NotificationExplainerScreen(
         ) {
             item {
                 Text(
-                    text = "店舗の近くで届く通知",
+                    text = stringResource(R.string.explainer_title),
                     style = MaterialTheme.typography.headlineMedium
                 )
             }
@@ -44,17 +59,17 @@ fun NotificationExplainerScreen(
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
-                            text = "レシート消耗品リマインダー",
+                            text = stringResource(R.string.explainer_sample_app),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "洗剤など 3 点がなくなりそうです",
+                            text = stringResource(R.string.explainer_sample_title),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
                         Text(
-                            text = "みどりマート 中央店の近くです。タップしてリストを開きます。",
+                            text = stringResource(R.string.explainer_sample_body),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -65,7 +80,7 @@ fun NotificationExplainerScreen(
             item {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "最初の店舗を登録するときの説明",
+                    text = stringResource(R.string.explainer_section_title),
                     style = MaterialTheme.typography.headlineMedium
                 )
             }
@@ -82,18 +97,18 @@ fun NotificationExplainerScreen(
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         Text(
-                            text = "位置情報の利用について",
+                            text = stringResource(R.string.store_permission_dialog_title),
                             style = MaterialTheme.typography.titleLarge
                         )
                         Text(
-                            text = "アプリを閉じていても店舗の近くでお知らせするために、次の画面で位置情報を「常に許可」にしてください。",
+                            text = stringResource(R.string.store_permission_dialog_body),
                             fontSize = 15.sp,
                             lineHeight = 22.sp
                         )
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("・ 位置情報は、登録した店舗に近づいたかの判定だけに使います", fontSize = 14.sp)
-                            Text("・ 購入データとレシートの画像は外部に送りません", fontSize = 14.sp)
-                            Text("・ 許可しなくても、店舗の通知以外の機能は使えます", fontSize = 14.sp)
+                            Text(stringResource(R.string.store_permission_point_1), fontSize = 14.sp)
+                            Text(stringResource(R.string.store_permission_point_2), fontSize = 14.sp)
+                            Text(stringResource(R.string.store_permission_point_3), fontSize = 14.sp)
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -103,24 +118,26 @@ fun NotificationExplainerScreen(
                                 onClick = onDismiss,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(48.dp),
+                                    .heightIn(min = 48.dp),
                                 shape = RoundedCornerShape(6.dp)
                             ) {
-                                Text("今はしない", fontSize = 14.sp)
+                                Text(stringResource(R.string.store_permission_not_now), fontSize = 14.sp)
                             }
                             Button(
                                 onClick = onProceed,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(48.dp),
+                                    .heightIn(min = 48.dp),
                                 shape = RoundedCornerShape(6.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
                             ) {
                                 Text(
-                                    text = "許可へ進む",
+                                    text = stringResource(R.string.store_permission_proceed),
                                     fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
