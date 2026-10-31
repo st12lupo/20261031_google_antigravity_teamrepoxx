@@ -3,6 +3,7 @@
     <string name="list_add_manual">手動で追加</string>
     <string name="list_scan_receipt">レシートを取り込む</string>
     <string name="list_section_urgent">なくなりそう %1$d 点</string>
+    <string name="list_stat_urgent">なくなりそう</string>
     <string name="list_section_safe">まだ大丈夫</string>
     <string name="list_estimated">推定</string>
     <string name="list_action_purchased">購入済み</string>

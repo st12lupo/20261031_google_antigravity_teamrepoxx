@@ -142,11 +142,32 @@ class ReceiptReviewViewModelTest {
         val vm = vm(scanner, StubService())
         advanceUntilIdle()
         assertFalse(vm.uiState.value.hasCapturedImages)
+        assertTrue(vm.uiState.value.hasPickedImages)
 
         vm.save()
         advanceUntilIdle()
         assertEquals(ReviewResult.Saved, vm.uiState.value.finished)
         assertTrue(scanner.deleted.isEmpty())
+    }
+
+    @Test
+    fun capturedImagesAreNotReportedAsPicked() = runTest {
+        val vm = ReceiptReviewViewModel(StubScanner(Result.success(candidate())), StubService())
+        vm.onImagesCaptured(listOf("file://scan/1"))
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.hasCapturedImages)
+        assertFalse(vm.uiState.value.hasPickedImages)
+    }
+
+    @Test
+    fun manualInputAfterFailedCaptureHasNoImages() = runTest {
+        val vm = ReceiptReviewViewModel(StubScanner(Result.failure(RuntimeException("x"))), StubService())
+        vm.onImagesCaptured(listOf("file://scan/1"))
+        advanceUntilIdle()
+
+        vm.startManualInput()
+        assertFalse(vm.uiState.value.hasCapturedImages)
+        assertFalse(vm.uiState.value.hasPickedImages)
     }
 
     @Test
