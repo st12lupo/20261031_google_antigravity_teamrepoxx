@@ -30,3 +30,22 @@ val OutlineDark = Color(0xFF33403C)
 val OutlineVariantDark = Color(0xFF4D5E59)
 val WarningBrownDark = Color(0xFFFFB74D)
 val WarningBrownBgDark = Color(0xFF3A2810)
+
+// Graphical palette extensions
+val PrimaryContainerLight = Color(0xFFD8F2EB)
+val OnPrimaryContainerLight = Color(0xFF053D32)
+val PrimaryContainerDark = Color(0xFF124036)
+val OnPrimaryContainerDark = Color(0xFFB4E8DC)
+
+val UrgentOrange = Color(0xFFD95D1E)
+val UrgentOrangeBg = Color(0xFFFFEFE6)
+val UrgentOrangeDark = Color(0xFFFF9E6D)
+val UrgentOrangeBgDark = Color(0xFF3D2214)
+
+val SafeGreen = Color(0xFF1B7F6B)
+val SafeGreenBg = Color(0xFFE3F5F0)
+val SafeGreenDark = Color(0xFF5DD1B8)
+val SafeGreenBgDark = Color(0xFF14352E)
+
+val SurfaceContainerLight = Color(0xFFE9EFEC)
+val SurfaceContainerDark = Color(0xFF232D2A)

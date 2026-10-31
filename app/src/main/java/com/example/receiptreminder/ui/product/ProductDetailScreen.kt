@@ -1,6 +1,9 @@
 package com.example.receiptreminder.ui.product
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,13 +12,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -31,6 +50,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -87,15 +108,23 @@ fun ProductDetailScreen(
             item {
                 TextButton(
                     onClick = onBack,
-                    contentPadding = PaddingValues(0.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                     modifier = Modifier
-                        .padding(top = 24.dp)
+                        .padding(top = 20.dp)
                         .height(44.dp)
                 ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         stringResource(R.string.product_back),
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
@@ -180,15 +209,55 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
     onTrackedChange: (Boolean) -> Unit
 ) {
     item {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(text = product.name, style = MaterialTheme.typography.headlineLarge)
-            Text(
-                text = productStatusText(product),
-                color = productStatusColor(product),
-                fontWeight = FontWeight.Bold
-            )
-            if (!product.isTracked) {
-                SmallBadge(stringResource(R.string.product_badge_untracked))
+        CardColumn {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    ProductCategoryAvatar(
+                        name = product.name,
+                        status = product.status,
+                        size = 56.dp
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = product.name,
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            val statusColor = productStatusColor(product)
+                            val chipShape = RoundedCornerShape(10.dp)
+                            Text(
+                                text = productStatusText(product),
+                                color = statusColor,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                modifier = Modifier
+                                    .background(statusColor.copy(alpha = 0.12f), chipShape)
+                                    .border(1.dp, statusColor.copy(alpha = 0.28f), chipShape)
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                            if (!product.isTracked) {
+                                SmallBadge(stringResource(R.string.product_badge_untracked))
+                            }
+                        }
+                    }
+                }
+                if (product.isTracked) {
+                    StockLevelBar(product = product)
+                }
             }
         }
     }
@@ -197,17 +266,20 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
         item {
             CardColumn {
                 DetailRow(
+                    icon = Icons.Filled.Event,
                     label = stringResource(R.string.product_row_out_date),
                     value = formatShortDate(product.predictedOutDate),
                     showDivider = true
                 )
                 DetailRow(
+                    icon = Icons.Filled.Autorenew,
                     label = stringResource(R.string.product_row_cycle),
                     value = stringResource(R.string.product_cycle_value, formatCycleDays(product.cycleDays)),
                     badge = if (product.isEstimated) stringResource(R.string.product_badge_estimated) else null,
                     showDivider = true
                 )
                 DetailRow(
+                    icon = Icons.Filled.NotificationsActive,
                     label = stringResource(R.string.product_row_became_low),
                     value = product.becameLowDate?.let { formatShortDate(it) }
                         ?: stringResource(R.string.product_row_none),
@@ -224,16 +296,32 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.product_action_purchased)) }
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(stringResource(R.string.product_action_purchased))
+            }
             OutlinedButton(
                 onClick = onSnooze,
                 enabled = product.isTracked,
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.product_action_snooze)) }
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Schedule,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(stringResource(R.string.product_action_snooze))
+            }
         }
     }
 
@@ -242,6 +330,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
             text = stringResource(R.string.product_history_title),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(top = 4.dp)
         )
     }
@@ -251,7 +340,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
                 Text(
                     text = stringResource(R.string.product_history_empty),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(14.dp)
+                    modifier = Modifier.padding(16.dp)
                 )
             }
             purchases.forEachIndexed { index, record ->
@@ -269,9 +358,17 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
             onClick = onAdd,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(44.dp),
-            shape = RoundedCornerShape(6.dp)
-        ) { Text(stringResource(R.string.product_add_purchase), fontSize = 14.sp) }
+                .height(46.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(stringResource(R.string.product_add_purchase), fontSize = 14.sp)
+        }
     }
 
     item {
@@ -279,6 +376,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
             text = stringResource(R.string.product_settings_title),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(top = 4.dp)
         )
     }
@@ -322,7 +420,13 @@ private fun androidx.compose.foundation.lazy.LazyListScope.loadedItems(
 }
 
 @Composable
-private fun DetailRow(label: String, value: String, showDivider: Boolean, badge: String? = null) {
+private fun DetailRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    showDivider: Boolean,
+    badge: String? = null
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -330,7 +434,26 @@ private fun DetailRow(label: String, value: String, showDivider: Boolean, badge:
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+            Text(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             if (badge != null) SmallBadge(badge)
             Text(text = value, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -346,25 +469,83 @@ private fun HistoryRow(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp)) {
+    val sourceIcon = when (record.source) {
+        PurchaseSource.RECEIPT -> Icons.AutoMirrored.Filled.ReceiptLong
+        PurchaseSource.MANUAL -> Icons.Filled.EditNote
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = sourceIcon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = formatFullDate(record.purchasedOn), fontSize = 15.sp)
+                Text(
+                    text = formatFullDate(record.purchasedOn),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium
+                )
                 Text(
                     text = sourceLabel(record),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp
                 )
             }
-            Text(text = stringResource(R.string.product_quantity_value, record.quantity), fontSize = 15.sp)
+            val pillShape = RoundedCornerShape(12.dp)
+            Text(
+                text = stringResource(R.string.product_quantity_value, record.quantity),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), pillShape)
+                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), pillShape)
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            )
         }
         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-            TextButton(onClick = onEdit) { Text(stringResource(R.string.product_edit_purchase)) }
-            TextButton(onClick = onDelete) {
+            TextButton(
+                onClick = onEdit,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(stringResource(R.string.product_edit_purchase))
+            }
+            TextButton(
+                onClick = onDelete,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.DeleteOutline,
+                    contentDescription = null,
+                    tint = dangerColor(),
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(stringResource(R.string.product_delete_purchase), color = dangerColor())
             }
         }
