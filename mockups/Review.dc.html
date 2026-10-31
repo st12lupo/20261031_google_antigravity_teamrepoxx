@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>レシートの確認</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 1040px; box-sizing: border-box; display: flex; flex-direction: column; background: #f2f5f3; color: #1b2623; font-family: 'BIZ UDPGothic', 'Yu Gothic', sans-serif; font-size: 15px; line-height: 1.5">
+  <div style="padding: 24px 16px 12px; display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 24px">レシートの確認</h1>
+    <p style="margin: 0; color: #5a6864; font-size: 14px">読み取り結果を確認して、違うところを直してください。</p>
+  </div>
+
+  <div style="flex-grow: 1; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="background: #f8ebd6; border-radius: 6px; padding: 12px 14px; font-size: 14px; color: #5c3505"><b>同じレシートが登録済みかもしれません</b><br>店名、日付、合計金額が一致しています。別のレシートならそのまま保存できます。</div>
+
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; padding: 12px 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #5a6864">店名<input value="みどりマート 中央店" style="min-height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #a9b6b1; border-radius: 6px; background: #ffffff; color: #1b2623; font: inherit; font-size: 15px"></label>
+      <label style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #5a6864">日付<input value="2026/10/31" style="min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #a9b6b1; border-radius: 6px; background: #ffffff; color: #1b2623; font: inherit; font-size: 15px"></label>
+      <label style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #5a6864">合計金額<input value="¥1,544" style="min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #a9b6b1; border-radius: 6px; background: #ffffff; color: #1b2623; font: inherit; font-size: 15px"></label>
+    </div>
+
+    <h2 style="margin: 4px 0 0; font-size: 14px; color: #5a6864">商品 4 点</h2>
+
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; display: flex; flex-direction: column">
+      <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #cdd6d2">
+        <div style="font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px; color: #5a6864">ｼｮｯｷｾﾝｻﾞｲ ｷｭｷｭｯﾄ</div>
+        <div style="display: flex; justify-content: space-between; gap: 12px"><b>食器用洗剤</b><span>1 個　¥198</span></div>
+        <div style="font-size: 12px; color: #0a5a4a">予測の対象</div>
+      </div>
+      <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #cdd6d2">
+        <div style="font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px; color: #5a6864">ﾄｲﾚｯﾄﾍﾟｰﾊﾟｰ 12R</div>
+        <div style="display: flex; justify-content: space-between; gap: 12px"><b>トイレットペーパー</b><span>1 個　¥458</span></div>
+        <div style="font-size: 12px; color: #0a5a4a">予測の対象・2 日前の「購入済み」と 1 件にまとめます</div>
+      </div>
+      <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #cdd6d2">
+        <div style="font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px; color: #5a6864">ｷﾞｭｳﾆｭｳ 1L 2ｺ X238</div>
+        <div style="display: flex; justify-content: space-between; gap: 12px"><b>牛乳</b><span>2 個　¥476</span></div>
+        <div style="font-size: 12px; color: #0a5a4a">予測の対象</div>
+      </div>
+      <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+        <div style="font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px; color: #5a6864">ﾄﾘﾑﾈﾆｸ</div>
+        <div style="display: flex; justify-content: space-between; gap: 12px"><b>鶏むね肉</b><span>1 個　¥412</span></div>
+        <div style="font-size: 12px; color: #5a6864">予測の対象外</div>
+      </div>
+    </div>
+    <button style="min-height: 44px; background: transparent; border: 1px dashed #a9b6b1; border-radius: 6px; color: #1b2623; font: inherit; font-size: 14px">商品を追加</button>
+  </div>
+
+  <div style="padding: 12px 16px 16px; background: #ffffff; border-top: 1px solid #cdd6d2; display: flex; flex-direction: column; gap: 8px">
+    <p style="margin: 0; font-size: 12px; color: #5a6864">保存するとレシートの画像は削除されます。</p>
+    <div style="display: flex; gap: 8px">
+      <a href="Main.dc.html" style="flex-grow: 1; min-height: 52px; display: flex; align-items: center; justify-content: center; border: 1px solid #a9b6b1; border-radius: 6px; color: #1b2623; text-decoration: none">取り消す</a>
+      <a href="Main.dc.html" style="flex-grow: 2; min-height: 52px; display: flex; align-items: center; justify-content: center; background: #0a6b58; border-radius: 6px; color: #ffffff; font-weight: 700; text-decoration: none">保存する</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

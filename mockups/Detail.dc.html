@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>商品の詳細</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 980px; box-sizing: border-box; display: flex; flex-direction: column; background: #f2f5f3; color: #1b2623; font-family: 'BIZ UDPGothic', 'Yu Gothic', sans-serif; font-size: 15px; line-height: 1.5">
+  <div style="padding: 24px 16px 12px; display: flex; flex-direction: column; gap: 4px">
+    <a href="Main.dc.html" style="min-height: 44px; display: flex; align-items: center; color: #0a6b58; font-size: 14px; text-decoration: none">リストに戻る</a>
+    <h1 style="margin: 0; font-size: 24px">食器用洗剤</h1>
+    <p style="margin: 0; color: #7a4507; font-weight: 700">なくなりそう・あと 2 日</p>
+  </div>
+
+  <div style="flex-grow: 1; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 14px">
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; display: flex; flex-direction: column">
+      <div style="padding: 11px 14px; display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #cdd6d2"><span style="color: #5a6864">切れる日</span><b>11 月 2 日</b></div>
+      <div style="padding: 11px 14px; display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #cdd6d2"><span style="color: #5a6864">周期</span><b>30 日 / 個</b></div>
+      <div style="padding: 11px 14px; display: flex; justify-content: space-between; gap: 12px"><span style="color: #5a6864">なくなりそうになった日</span><b>10 月 27 日</b></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <button style="min-height: 48px; background: #0a6b58; border: 0; border-radius: 6px; color: #ffffff; font: inherit; font-size: 14px">購入済み</button>
+      <button style="min-height: 48px; background: transparent; border: 1px solid #a9b6b1; border-radius: 6px; color: #1b2623; font: inherit; font-size: 14px">まだある</button>
+    </div>
+
+    <h2 style="margin: 4px 0 0; font-size: 14px; color: #5a6864">購入履歴</h2>
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; display: flex; flex-direction: column">
+      <div style="padding: 10px 14px; display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #cdd6d2"><span>10 月 3 日<br><small style="color: #5a6864">レシート・みどりマート 中央店</small></span><span>1 個</span></div>
+      <div style="padding: 10px 14px; display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #cdd6d2"><span>9 月 2 日<br><small style="color: #5a6864">手動で追加</small></span><span>1 個</span></div>
+      <div style="padding: 10px 14px; display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #cdd6d2"><span>8 月 3 日<br><small style="color: #5a6864">レシート・みどりマート 中央店</small></span><span>1 個</span></div>
+      <div style="padding: 10px 14px; display: flex; justify-content: space-between; gap: 12px"><span>7 月 5 日<br><small style="color: #5a6864">レシート・ドラッグひかり 駅前店</small></span><span>1 個</span></div>
+    </div>
+    <button style="min-height: 44px; background: transparent; border: 1px dashed #a9b6b1; border-radius: 6px; color: #1b2623; font: inherit; font-size: 14px">購入を追加</button>
+
+    <h2 style="margin: 4px 0 0; font-size: 14px; color: #5a6864">予測の設定</h2>
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; display: flex; flex-direction: column">
+      <label style="min-height: 52px; box-sizing: border-box; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid #cdd6d2">予測の対象にする<input type="checkbox" checked style="width: 22px; height: 22px; accent-color: #0a6b58"></label>
+      <button style="min-height: 52px; padding: 8px 14px; background: transparent; border: 0; color: #1b2623; font: inherit; text-align: left">もう買わない<br><small style="color: #5a6864">次にレシートで購入すると自動で戻ります</small></button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
