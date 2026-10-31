@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 店舗画面 -->
+    <string name="store_title">店舗</string>
+    <string name="store_subtitle">登録した店舗の近くで、なくなりそうなものをお知らせします。</string>
+    <string name="store_register_button">現在地を店舗として登録</string>
+    <string name="store_loading">読み込み中…</string>
+    <string name="store_empty_title">店舗が登録されていません</string>
+    <string name="store_empty_body">店舗の近くで通知を受け取るには、店舗の中や入口で「現在地を店舗として登録」を押してください。</string>
+    <string name="store_radius_label">通知する範囲 半径 %1$dm</string>
+    <string name="store_notify_off_label">通知オフ</string>
+    <string name="store_notify_toggle_description">%1$sの通知</string>
+    <string name="store_edit">変更</string>
+    <string name="store_delete">削除</string>
+    <string name="store_settings_section">設定</string>
+    <string name="store_time_range_label">通知する時間帯</string>
+    <string name="store_clear_all">履歴と店舗をすべて削除</string>
+    <string name="store_count_summary">登録数 %1$d / %2$d 件</string>
+
+    <!-- 共通ボタン -->
+    <string name="store_action_cancel">キャンセル</string>
+    <string name="store_action_save">保存</string>
+    <string name="store_action_register">登録する</string>
+    <string name="store_action_delete">削除する</string>
+    <string name="store_action_close">閉じる</string>
+
+    <!-- 登録ダイアログ -->
+    <string name="store_register_dialog_title">店舗として登録</string>
+    <string name="store_register_dialog_body">今いる場所を店舗として登録します。通知する範囲は半径 %1$dm で、あとから変更できます。</string>
+    <string name="store_name_label">店名</string>
+
+    <!-- 変更ダイアログ -->
+    <string name="store_edit_dialog_title">店舗の変更</string>
+    <string name="store_radius_input_label">通知する範囲(半径 %1$d〜%2$dm)</string>
+
+    <!-- 削除の確認 -->
+    <string name="store_delete_dialog_title">店舗を削除しますか</string>
+    <string name="store_delete_dialog_body">「%1$s」を削除します。この店舗の近くでは通知されなくなります。</string>
+    <string name="store_clear_dialog_title">すべて削除しますか</string>
+    <string name="store_clear_dialog_body">購入の履歴と登録した店舗をすべて削除し、店舗の通知も解除します。元に戻せません。</string>
+
+    <!-- 時間帯 -->
+    <string name="store_time_dialog_title">通知する時間帯</string>
+    <string name="store_time_dialog_body">この時間帯以外は、店舗の近くに来ても通知しません。時刻は 8:00 の形式で入力してください。</string>
+    <string name="store_time_start_label">開始</string>
+    <string name="store_time_end_label">終了</string>
+
+    <!-- 入力エラー -->
+    <string name="store_input_error_name_empty">店名を入力してください</string>
+    <string name="store_input_error_name_too_long">店名は %1$d 文字以内にしてください</string>
+    <string name="store_input_error_radius_not_number">半径は数字で入力してください</string>
+    <string name="store_input_error_radius_range">半径は %1$d〜%2$dm の範囲で入力してください</string>
+    <string name="store_input_error_time_format">時刻は 8:00 の形式で入力してください</string>
+    <string name="store_input_error_time_order">終了は開始より後の時刻にしてください</string>
+
+    <!-- 操作のエラー -->
+    <string name="store_error_limit">店舗は %1$d 件まで登録できます。不要な店舗を削除してから登録してください。</string>
+    <string name="store_error_location">現在地を取得できませんでした。位置情報の権限と端末の設定を確認してください。</string>
+    <string name="store_error_geofence_register">店舗は保存しましたが、通知の登録に失敗しました。位置情報の権限を確認して、通知をオフにしてからオンに戻してください。</string>
+    <string name="store_error_geofence_unregister">通知の解除に失敗しました。もう一度お試しください。</string>
+    <string name="store_error_save">保存に失敗しました。もう一度お試しください。</string>
+    <string name="store_error_delete">削除に失敗しました。もう一度お試しください。</string>
+
+    <!-- 権限の説明 -->
+    <string name="store_permission_dialog_title">位置情報の利用について</string>
+    <string name="store_permission_dialog_body">アプリを閉じていても店舗の近くでお知らせするために、次の画面で位置情報を「常に許可」にしてください。</string>
+    <string name="store_permission_point_1">・ 位置情報は、登録した店舗に近づいたかの判定だけに使います</string>
+    <string name="store_permission_point_2">・ 購入データとレシートの画像は外部に送りません</string>
+    <string name="store_permission_point_3">・ 許可しなくても、店舗の通知以外の機能は使えます</string>
+    <string name="store_permission_not_now">今はしない</string>
+    <string name="store_permission_proceed">許可へ進む</string>
+
+    <string name="store_denied_title">店舗の通知は今は使えません</string>
+    <string name="store_denied_body">店舗の近くでの通知には、次の許可が必要です。許可しなくても、店舗の通知以外の機能は使えます。</string>
+    <string name="store_denied_foreground">・ 位置情報(正確な位置)の許可</string>
+    <string name="store_denied_background">・ 位置情報を「常に許可」にする設定</string>
+    <string name="store_denied_notification">・ 通知の許可</string>
+    <string name="store_denied_open_settings">アプリの設定を開く</string>
+    <string name="store_denied_learn_more">通知のしくみを見る</string>
+
+    <!-- 通知の説明画面 -->
+    <string name="explainer_title">店舗の近くで届く通知</string>
+    <string name="explainer_sample_app">レシート消耗品リマインダー</string>
+    <string name="explainer_sample_title">洗剤など 3 点がなくなりそうです</string>
+    <string name="explainer_sample_body">みどりマート 中央店の近くです。タップしてリストを開きます。</string>
+    <string name="explainer_section_title">最初の店舗を登録するときの説明</string>
+</resources>
