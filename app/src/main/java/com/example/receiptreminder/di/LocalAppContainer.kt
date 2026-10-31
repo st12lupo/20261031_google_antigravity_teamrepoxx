@@ -1,5 +1,6 @@
 package com.example.receiptreminder.di
 
+import android.content.Context
 import androidx.compose.runtime.staticCompositionLocalOf
 
 /**
@@ -7,7 +8,13 @@ import androidx.compose.runtime.staticCompositionLocalOf
  * 仮実装から実装への置き換えは T-16 で行う
  */
 object AppContainerHolder {
-    val container: AppContainer by lazy { DefaultAppContainer() }
+    @Volatile
+    private var container: AppContainer? = null
+
+    fun get(context: Context): AppContainer =
+        container ?: synchronized(this) {
+            container ?: DefaultAppContainer(context.applicationContext).also { container = it }
+        }
 }
 
 /** 画面の ViewModel へ依存を渡すための CompositionLocal */

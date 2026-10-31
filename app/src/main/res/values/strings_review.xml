@@ -4,8 +4,13 @@
     <string name="review_subtitle">読み取り結果を確認して、違うところを直してください。</string>
     <string name="review_scanning">レシートを読み取っています…</string>
     <string name="review_scan_failed_title">読み取れませんでした</string>
-    <string name="review_scan_failed_body">もう一度撮影するか、手入力で登録できます。</string>
-    <string name="review_retake">再撮影する</string>
+    <string name="review_scan_failed_body">撮影や画像の選択をやり直すか、手入力で登録できます。</string>
+    <string name="review_retake">撮影または画像を選び直す</string>
+    <string name="review_source_title">レシートの取り込み</string>
+    <string name="review_source_body">長いレシートは複数ページに分けて取り込めます。</string>
+    <string name="review_source_camera">カメラで撮影</string>
+    <string name="review_source_gallery">保存した画像を選択</string>
+    <string name="review_image_kept_notice">選択した元の画像は削除しません。</string>
     <string name="review_manual_input">手動で入力する</string>
     <string name="review_duplicate_title">同じレシートが登録済みかもしれません</string>
     <string name="review_duplicate_body">店名、日付、合計金額が一致しています。別のレシートならそのまま保存できます。</string>

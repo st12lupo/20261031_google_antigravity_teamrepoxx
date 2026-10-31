@@ -1,6 +1,12 @@
 package com.example.receiptreminder.ui.review
 
+import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -49,6 +55,11 @@ import com.example.receiptreminder.ui.theme.WarningBrownBg
 import com.example.receiptreminder.ui.theme.WarningBrownBgDark
 import com.example.receiptreminder.ui.theme.WarningBrownDark
 import com.example.receiptreminder.ui.theme.WarningBrownText
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+
+private const val MAX_RECEIPT_PAGES = 10
 
 @Composable
 fun ReceiptReviewScreen(
@@ -73,14 +84,113 @@ fun ReceiptReviewScreen(
     }
     BackHandler(enabled = !state.isSaving && state.finished == null) { viewModel.cancel() }
 
+    val activity = LocalActivity.current
+    val scannerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        val pages = GmsDocumentScanningResult.fromActivityResultIntent(result.data)?.pages
+        if (result.resultCode == Activity.RESULT_OK && pages != null) {
+            viewModel.onImagesCaptured(pages.map { it.imageUri.toString() })
+        }
+    }
+    val pickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(MAX_RECEIPT_PAGES)
+    ) { uris ->
+        viewModel.onImagesPicked(uris.map { it.toString() })
+    }
+
     when (state.phase) {
+        ReviewPhase.ChooseSource -> ChooseSourceContent(
+            onCapture = {
+                if (activity == null) {
+                    viewModel.onCaptureUnavailable()
+                } else {
+                    val options = GmsDocumentScannerOptions.Builder()
+                        .setGalleryImportAllowed(false)
+                        .setPageLimit(MAX_RECEIPT_PAGES)
+                        .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG)
+                        .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
+                        .build()
+                    GmsDocumentScanning.getClient(options)
+                        .getStartScanIntent(activity)
+                        .addOnSuccessListener { sender ->
+                            scannerLauncher.launch(IntentSenderRequest.Builder(sender).build())
+                        }
+                        .addOnFailureListener { viewModel.onCaptureUnavailable() }
+                }
+            },
+            onPick = {
+                pickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
+            },
+            onManual = viewModel::startManualInput,
+            onCancel = viewModel::cancel
+        )
         ReviewPhase.Scanning -> ScanningContent(onCancel = viewModel::cancel)
         ReviewPhase.ScanFailed -> ScanFailedContent(
-            onRetake = viewModel::scan,
+            onRetake = viewModel::chooseSourceAgain,
             onManual = viewModel::startManualInput,
             onCancel = viewModel::cancel
         )
         ReviewPhase.Editing -> EditingContent(state, viewModel)
+    }
+}
+
+@Composable
+private fun ChooseSourceContent(
+    onCapture: () -> Unit,
+    onPick: () -> Unit,
+    onManual: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Scaffold { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+        ) {
+            Text(
+                stringResource(R.string.review_source_title),
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Text(
+                stringResource(R.string.review_source_body),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 14.sp
+            )
+            Button(
+                onClick = onCapture,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(6.dp)
+            ) { Text(stringResource(R.string.review_source_camera), fontWeight = FontWeight.Bold) }
+            OutlinedButton(
+                onClick = onPick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(6.dp)
+            ) { Text(stringResource(R.string.review_source_gallery)) }
+            OutlinedButton(
+                onClick = onManual,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(6.dp)
+            ) { Text(stringResource(R.string.review_manual_input)) }
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(6.dp)
+            ) { Text(stringResource(R.string.review_cancel)) }
+        }
     }
 }
 
@@ -200,7 +310,10 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                     )
                 }
                 Text(
-                    text = stringResource(R.string.review_image_deleted_notice),
+                    text = stringResource(
+                        if (state.hasCapturedImages) R.string.review_image_deleted_notice
+                        else R.string.review_image_kept_notice
+                    ),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

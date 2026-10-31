@@ -34,16 +34,17 @@ class DefaultReceiptScanner(
         return suspendCancellableCoroutine { continuation ->
             recognizer.process(image)
                 .addOnSuccessListener { visionText ->
-                    val lines = mutableListOf<String>()
+                    val lines = mutableListOf<OcrLine>()
                     for (block in visionText.textBlocks) {
                         for (line in block.lines) {
                             val text = line.text.trim()
-                            if (text.isNotEmpty()) {
-                                lines.add(text)
+                            val box = line.boundingBox
+                            if (text.isNotEmpty() && box != null) {
+                                lines.add(OcrLine(text, box.left, box.top, box.bottom))
                             }
                         }
                     }
-                    continuation.resume(lines)
+                    continuation.resume(joinLinesByRow(lines))
                 }
                 .addOnFailureListener { exception ->
                     continuation.resumeWithException(exception)
