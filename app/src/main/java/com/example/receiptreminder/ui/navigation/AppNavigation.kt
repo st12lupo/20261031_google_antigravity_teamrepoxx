@@ -1,11 +1,26 @@
 package com.example.receiptreminder.ui.navigation
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,7 +36,6 @@ import com.example.receiptreminder.ui.product.ProductListScreen
 import com.example.receiptreminder.ui.review.ReceiptReviewScreen
 import com.example.receiptreminder.ui.store.NotificationExplainerScreen
 import com.example.receiptreminder.ui.store.StoresScreen
-import com.example.receiptreminder.ui.theme.PrimaryGreen
 
 @Composable
 fun AppNavigation(
@@ -47,42 +61,63 @@ fun AppNavigation(
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 0.dp
-                ) {
-                    bottomNavItems.forEach { screen ->
-                        val selected = when (screen) {
-                            Screen.ShoppingList -> currentRoute == Screen.ShoppingList.route
-                            Screen.ProductList -> currentRoute == Screen.ProductList.route ||
-                                currentRoute?.startsWith("product_detail") == true
-                            Screen.Stores -> currentRoute == Screen.Stores.route
-                            else -> false
-                        }
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                Column {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                    )
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 4.dp
+                    ) {
+                        bottomNavItems.forEach { screen ->
+                            val selected = when (screen) {
+                                Screen.ShoppingList -> currentRoute == Screen.ShoppingList.route
+                                Screen.ProductList -> currentRoute == Screen.ProductList.route ||
+                                    currentRoute?.startsWith("product_detail") == true
+                                Screen.Stores -> currentRoute == Screen.Stores.route
+                                else -> false
+                            }
+                            val iconVector = when (screen) {
+                                Screen.ShoppingList -> if (selected) Icons.Filled.ShoppingCart else Icons.Outlined.ShoppingCart
+                                Screen.ProductList -> if (selected) Icons.Filled.Inventory2 else Icons.Outlined.Inventory2
+                                Screen.Stores -> if (selected) Icons.Filled.Storefront else Icons.Outlined.Storefront
+                                else -> Icons.Outlined.ShoppingCart
+                            }
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { },
-                            label = {
-                                Text(
-                                    text = screen.title,
-                                    fontSize = 14.sp,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selected) PrimaryGreen else MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = iconVector,
+                                        contentDescription = screen.title,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = screen.title,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                    )
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                 )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = Color.Transparent
                             )
-                        )
+                        }
                     }
                 }
             }

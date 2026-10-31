@@ -1,7 +1,6 @@
 package com.example.receiptreminder.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -15,11 +14,16 @@ import androidx.core.view.WindowCompat
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryGreenDarkTheme,
     onPrimary = SurfaceDark,
+    primaryContainer = PrimaryContainerDark,
+    onPrimaryContainer = OnPrimaryContainerDark,
+    secondary = SafeGreenDark,
+    secondaryContainer = SafeGreenBgDark,
+    onSecondaryContainer = TextPrimaryDark,
     background = BackgroundDark,
     onBackground = TextPrimaryDark,
     surface = SurfaceDark,
     onSurface = TextPrimaryDark,
-    surfaceVariant = SurfaceDark,
+    surfaceVariant = SurfaceContainerDark,
     onSurfaceVariant = TextSecondaryDark,
     outline = OutlineDark,
     outlineVariant = OutlineVariantDark,
@@ -29,11 +33,16 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryGreen,
     onPrimary = SurfaceLight,
+    primaryContainer = PrimaryContainerLight,
+    onPrimaryContainer = OnPrimaryContainerLight,
+    secondary = SafeGreen,
+    secondaryContainer = SafeGreenBg,
+    onSecondaryContainer = TextPrimaryLight,
     background = BackgroundLight,
     onBackground = TextPrimaryLight,
     surface = SurfaceLight,
     onSurface = TextPrimaryLight,
-    surfaceVariant = SurfaceLight,
+    surfaceVariant = SurfaceContainerLight,
     onSurfaceVariant = TextSecondaryLight,
     outline = OutlineLight,
     outlineVariant = OutlineVariantLight,

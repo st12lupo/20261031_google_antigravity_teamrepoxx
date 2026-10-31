@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,11 +20,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DocumentScanner
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,10 +63,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -149,47 +172,97 @@ private fun ChooseSourceContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
         ) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 stringResource(R.string.review_source_title),
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center
             )
             Text(
                 stringResource(R.string.review_source_body),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = onCapture,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.review_source_camera), fontWeight = FontWeight.Bold) }
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.PhotoCamera,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.review_source_camera), fontWeight = FontWeight.Bold)
+            }
             OutlinedButton(
                 onClick = onPick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.review_source_gallery)) }
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.PhotoLibrary,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.review_source_gallery))
+            }
             OutlinedButton(
                 onClick = onManual,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.review_manual_input)) }
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.EditNote,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.review_manual_input))
+            }
             OutlinedButton(
                 onClick = onCancel,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.review_cancel)) }
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.review_cancel))
+            }
         }
     }
 }
@@ -201,15 +274,47 @@ private fun ScanningContent(onCancel: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            CircularProgressIndicator()
-            Spacer(Modifier.height(16.dp))
-            Text(stringResource(R.string.review_scanning), fontSize = 16.sp)
+            Box(
+                modifier = Modifier.size(96.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(96.dp),
+                    strokeWidth = 3.dp
+                )
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.DocumentScanner,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+            Text(
+                stringResource(R.string.review_scanning),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
             Spacer(Modifier.height(24.dp))
-            OutlinedButton(onClick = onCancel, shape = RoundedCornerShape(6.dp)) {
+            OutlinedButton(onClick = onCancel, shape = RoundedCornerShape(14.dp)) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(stringResource(R.string.review_cancel))
             }
         }
@@ -223,40 +328,82 @@ private fun ScanFailedContent(onRetake: () -> Unit, onManual: () -> Unit, onCanc
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
         ) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ErrorOutline,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 stringResource(R.string.review_scan_failed_title),
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center
             )
             Text(
                 stringResource(R.string.review_scan_failed_body),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = onRetake,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.review_retake), fontWeight = FontWeight.Bold) }
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.review_retake), fontWeight = FontWeight.Bold)
+            }
             OutlinedButton(
                 onClick = onManual,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.review_manual_input)) }
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.EditNote,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.review_manual_input))
+            }
             OutlinedButton(
                 onClick = onCancel,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                shape = RoundedCornerShape(6.dp)
-            ) { Text(stringResource(R.string.review_cancel)) }
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.review_cancel))
+            }
         }
     }
 }
@@ -327,7 +474,7 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                         modifier = Modifier
                             .weight(1f)
                             .height(52.dp),
-                        shape = RoundedCornerShape(6.dp)
+                        shape = RoundedCornerShape(14.dp)
                     ) { Text(stringResource(R.string.review_cancel)) }
                     Button(
                         onClick = vm::save,
@@ -335,8 +482,14 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                         modifier = Modifier
                             .weight(2f)
                             .height(52.dp),
-                        shape = RoundedCornerShape(6.dp)
+                        shape = RoundedCornerShape(14.dp)
                     ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             stringResource(
                                 if (state.isSaving) R.string.review_saving else R.string.review_save
@@ -378,24 +531,35 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(6.dp),
+                        shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(containerColor = warnBg)
                     ) {
-                        Column(
+                        Row(
                             modifier = Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.Top
                         ) {
-                            Text(
-                                text = stringResource(R.string.review_duplicate_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = warnText
+                            Icon(
+                                imageVector = Icons.Filled.WarningAmber,
+                                contentDescription = null,
+                                tint = warnText,
+                                modifier = Modifier.size(22.dp)
                             )
-                            Text(
-                                text = stringResource(R.string.review_duplicate_body),
-                                fontSize = 14.sp,
-                                color = warnText
-                            )
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.review_duplicate_title),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = warnText
+                                )
+                                Text(
+                                    text = stringResource(R.string.review_duplicate_body),
+                                    fontSize = 14.sp,
+                                    color = warnText
+                                )
+                            }
                         }
                     }
                 }
@@ -404,7 +568,7 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(6.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = CardDefaults.outlinedCardBorder()
                 ) {
@@ -417,6 +581,13 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                             value = form.storeName,
                             onValueChange = vm::onStoreNameChange,
                             label = { Text(stringResource(R.string.review_field_store)) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Storefront,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
                             isError = storeError != null,
                             supportingText = storeError?.let { { Text(it) } },
                             modifier = Modifier.fillMaxWidth(),
@@ -433,6 +604,14 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                                 onValueChange = vm::onDateChange,
                                 label = { Text(stringResource(R.string.review_field_date)) },
                                 placeholder = { Text(stringResource(R.string.review_field_date_hint)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.CalendarToday,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                },
                                 isError = dateError != null,
                                 supportingText = dateError?.let { { Text(it) } },
                                 modifier = Modifier.weight(1f),
@@ -443,6 +622,14 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                                 value = form.total,
                                 onValueChange = vm::onTotalChange,
                                 label = { Text(stringResource(R.string.review_field_total)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Payments,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                },
                                 isError = totalError != null,
                                 supportingText = totalError?.let { { Text(it) } },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -468,11 +655,12 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
-                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
                     ) {
                         form.items.forEachIndexed { index, item ->
                             ReceiptItemRow(
+                                index = index + 1,
                                 item = item,
                                 errors = if (show) validation.items[item.id] else null,
                                 onNameChange = { vm.onItemNameChange(item.id, it) },
@@ -493,9 +681,15 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                     onClick = vm::addItem,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(44.dp),
-                    shape = RoundedCornerShape(6.dp)
+                        .height(48.dp),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(stringResource(R.string.review_add_item), fontSize = 14.sp)
                 }
             }
@@ -507,6 +701,7 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
 
 @Composable
 private fun ReceiptItemRow(
+    index: Int,
     item: ItemForm,
     errors: ItemErrors?,
     onNameChange: (String) -> Unit,
@@ -528,16 +723,45 @@ private fun ReceiptItemRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        val nameError = fieldErrorText(errors?.name, errors != null)
-        OutlinedTextField(
-            value = item.name,
-            onValueChange = onNameChange,
-            label = { Text(stringResource(R.string.review_field_item_name)) },
-            isError = nameError != null,
-            supportingText = nameError?.let { { Text(it) } },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = index.toString(),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            val nameError = fieldErrorText(errors?.name, errors != null)
+            OutlinedTextField(
+                value = item.name,
+                onValueChange = onNameChange,
+                label = { Text(stringResource(R.string.review_field_item_name)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.ShoppingBag,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                },
+                isError = nameError != null,
+                supportingText = nameError?.let { { Text(it) } },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -578,11 +802,44 @@ private fun ReceiptItemRow(
             notice != null -> stringResource(R.string.review_item_tracked_with_notice, notice)
             else -> stringResource(R.string.review_item_tracked)
         }
-        Text(
-            text = status,
-            fontSize = 12.sp,
-            color = if (item.isTracked) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(
+                    if (item.isTracked) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)
+                    }
+                )
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = if (item.isTracked) {
+                    Icons.Filled.CheckCircle
+                } else {
+                    Icons.Filled.RemoveCircleOutline
+                },
+                contentDescription = null,
+                tint = if (item.isTracked) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.size(15.dp)
+            )
+            Text(
+                text = status,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (item.isTracked) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+        }
     }
 }
