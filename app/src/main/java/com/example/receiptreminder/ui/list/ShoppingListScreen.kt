@@ -1,29 +1,120 @@
 package com.example.receiptreminder.ui.list
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.receiptreminder.ui.theme.PrimaryGreen
-import com.example.receiptreminder.ui.theme.PrimaryGreenLight
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.receiptreminder.R
+import com.example.receiptreminder.di.LocalAppContainer
 import com.example.receiptreminder.ui.theme.WarningBrown
+import com.example.receiptreminder.ui.theme.WarningBrownDark
 
 @Composable
 fun ShoppingListScreen(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToScan: () -> Unit
 ) {
+    val container = LocalAppContainer.current
+    val viewModel: ShoppingListViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer { ShoppingListViewModel(container.shoppingListRepository) }
+        }
+    )
+    val state by viewModel.uiState.collectAsState()
+    ShoppingListContent(
+        state = state,
+        onNavigateToDetail = onNavigateToDetail,
+        onNavigateToScan = onNavigateToScan,
+        onPurchased = viewModel::onPurchased,
+        onStillHave = viewModel::onStillHave,
+        onDoNotBuy = viewModel::onDoNotBuy,
+        onRetry = viewModel::retry,
+        onConsumeActionError = viewModel::consumeActionError,
+        onOpenAdd = viewModel::openAddForm,
+        onDismissAdd = viewModel::dismissAddForm,
+        onNameChange = viewModel::onNameChange,
+        onDateChange = viewModel::onDateChange,
+        onQuantityChange = viewModel::onQuantityChange,
+        onSubmitAdd = viewModel::submitAddForm
+    )
+}
+
+@Composable
+private fun warningColor(): Color =
+    if (isSystemInDarkTheme()) WarningBrownDark else WarningBrown
+
+@Composable
+fun ShoppingListContent(
+    state: ShoppingListUiState,
+    onNavigateToDetail: (String) -> Unit,
+    onNavigateToScan: () -> Unit,
+    onPurchased: (String) -> Unit,
+    onStillHave: (String) -> Unit,
+    onDoNotBuy: (String) -> Unit,
+    onRetry: () -> Unit,
+    onConsumeActionError: () -> Unit,
+    onOpenAdd: () -> Unit,
+    onDismissAdd: () -> Unit,
+    onNameChange: (String) -> Unit,
+    onDateChange: (String) -> Unit,
+    onQuantityChange: (String) -> Unit,
+    onSubmitAdd: () -> Unit
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailedMessage = stringResource(R.string.list_action_failed)
+    LaunchedEffect(state.actionFailed) {
+        if (state.actionFailed) {
+            snackbarHostState.showSnackbar(actionFailedMessage)
+            onConsumeActionError()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             Box(
                 modifier = Modifier
@@ -37,12 +128,12 @@ fun ShoppingListScreen(
                         .height(52.dp),
                     shape = RoundedCornerShape(6.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1B2623),
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.onSurface,
+                        contentColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
                     Text(
-                        text = "レシートを撮影",
+                        text = stringResource(R.string.list_scan_receipt),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -50,126 +141,154 @@ fun ShoppingListScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 24.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.list_title),
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                OutlinedButton(
+                    onClick = onOpenAdd,
+                    shape = RoundedCornerShape(6.dp),
+                    modifier = Modifier.height(44.dp)
                 ) {
+                    Text(stringResource(R.string.list_add_manual), fontSize = 14.sp)
+                }
+            }
+
+            when {
+                state.isLoading -> CenterMessage {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(12.dp))
                     Text(
-                        text = "買い物リスト",
-                        style = MaterialTheme.typography.headlineLarge
+                        stringResource(R.string.list_loading),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    OutlinedButton(
-                        onClick = { /* 手動追加ダイアログなど */ },
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.height(44.dp)
-                    ) {
-                        Text("手動で追加", fontSize = 14.sp)
+                }
+
+                state.loadFailed -> CenterMessage {
+                    Text(
+                        stringResource(R.string.list_error_title),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedButton(onClick = onRetry, shape = RoundedCornerShape(6.dp)) {
+                        Text(stringResource(R.string.list_error_retry))
                     }
                 }
-            }
 
-            item {
-                Text(
-                    text = "なくなりそう 3 点",
-                    color = WarningBrown,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-
-            // なくなりそうアイテム1
-            item {
-                UrgentShoppingItem(
-                    name = "牛乳",
-                    statusText = "1 日過ぎています",
-                    onItemClick = { onNavigateToDetail("milk") },
-                    onPurchased = { },
-                    onStillHave = { },
-                    onDoNotBuy = { }
-                )
-            }
-
-            // なくなりそうアイテム2
-            item {
-                UrgentShoppingItem(
-                    name = "食器用洗剤",
-                    statusText = "あと 2 日",
-                    onItemClick = { onNavigateToDetail("dish-soap") },
-                    onPurchased = { },
-                    onStillHave = { },
-                    onDoNotBuy = { }
-                )
-            }
-
-            // なくなりそうアイテム3
-            item {
-                UrgentShoppingItem(
-                    name = "トイレットペーパー",
-                    statusText = "あと 4 日",
-                    onItemClick = { onNavigateToDetail("toilet-paper") },
-                    onPurchased = { },
-                    onStillHave = { },
-                    onDoNotBuy = { }
-                )
-            }
-
-            item {
-                Text(
-                    text = "まだ大丈夫",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-            }
-
-            // まだ大丈夫リスト
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
-                ) {
-                    SafeShoppingItemRow(
-                        name = "シャンプー",
-                        remainingText = "あと 18 日",
-                        isEstimated = false,
-                        showDivider = true,
-                        onClick = { onNavigateToDetail("shampoo") }
+                state.isEmpty -> CenterMessage {
+                    Text(
+                        stringResource(R.string.list_empty_title),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
                     )
-                    SafeShoppingItemRow(
-                        name = "米",
-                        remainingText = "あと 26 日",
-                        isEstimated = true,
-                        showDivider = false,
-                        onClick = { onNavigateToDetail("rice") }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.list_empty_body),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
                     )
                 }
-            }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    if (state.urgent.isNotEmpty()) {
+                        item(key = "header-urgent") {
+                            Text(
+                                text = stringResource(R.string.list_section_urgent, state.urgent.size),
+                                color = warningColor(),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                        items(state.urgent, key = { "u-" + it.productId }) { row ->
+                            ShoppingItemCard(
+                                row = row,
+                                urgent = true,
+                                onItemClick = { onNavigateToDetail(row.productId) },
+                                onPurchased = { onPurchased(row.productId) },
+                                onStillHave = { onStillHave(row.productId) },
+                                onDoNotBuy = { onDoNotBuy(row.productId) }
+                            )
+                        }
+                    }
+                    if (state.safe.isNotEmpty()) {
+                        item(key = "header-safe") {
+                            Text(
+                                text = stringResource(R.string.list_section_safe),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(top = 12.dp)
+                            )
+                        }
+                        items(state.safe, key = { "s-" + it.productId }) { row ->
+                            ShoppingItemCard(
+                                row = row,
+                                urgent = false,
+                                onItemClick = { onNavigateToDetail(row.productId) },
+                                onPurchased = { onPurchased(row.productId) },
+                                onStillHave = { onStillHave(row.productId) },
+                                onDoNotBuy = { onDoNotBuy(row.productId) }
+                            )
+                        }
+                    }
+                    item(key = "footer") { Spacer(Modifier.height(16.dp)) }
+                }
             }
         }
+    }
+
+    state.addForm?.let { form ->
+        AddPurchaseDialog(
+            form = form,
+            onDismiss = onDismissAdd,
+            onNameChange = onNameChange,
+            onDateChange = onDateChange,
+            onQuantityChange = onQuantityChange,
+            onSubmit = onSubmitAdd
+        )
     }
 }
 
 @Composable
-fun UrgentShoppingItem(
-    name: String,
-    statusText: String,
+private fun CenterMessage(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) { content() }
+    }
+}
+
+@Composable
+private fun remainingText(days: Int): String = when {
+    days < 0 -> stringResource(R.string.list_remaining_overdue, -days)
+    days == 0 -> stringResource(R.string.list_remaining_today)
+    else -> stringResource(R.string.list_remaining_days, days)
+}
+
+@Composable
+fun ShoppingItemCard(
+    row: ShoppingRow,
+    urgent: Boolean,
     onItemClick: () -> Unit,
     onPurchased: () -> Unit,
     onStillHave: () -> Unit,
@@ -192,12 +311,43 @@ fun UrgentShoppingItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = statusText, color = WarningBrown, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = row.name,
+                        fontWeight = if (urgent) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 16.sp,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (row.isEstimated) {
+                        Spacer(Modifier.width(6.dp))
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.list_estimated),
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = remainingText(row.remainingDays),
+                    color = if (urgent) warningColor() else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (urgent) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 14.sp
+                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
                     onClick = onPurchased,
@@ -205,9 +355,12 @@ fun UrgentShoppingItem(
                         .weight(1f)
                         .height(44.dp),
                     shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
-                    Text("購入済み", color = Color.White)
+                    Text(stringResource(R.string.list_action_purchased))
                 }
                 OutlinedButton(
                     onClick = onStillHave,
@@ -216,13 +369,17 @@ fun UrgentShoppingItem(
                         .height(44.dp),
                     shape = RoundedCornerShape(6.dp)
                 ) {
-                    Text("まだある")
+                    Text(stringResource(R.string.list_action_still_have))
                 }
                 TextButton(
                     onClick = onDoNotBuy,
                     modifier = Modifier.height(44.dp)
                 ) {
-                    Text("もう買わない", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+                    Text(
+                        stringResource(R.string.list_action_do_not_buy),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }
@@ -230,41 +387,80 @@ fun UrgentShoppingItem(
 }
 
 @Composable
-fun SafeShoppingItemRow(
-    name: String,
-    remainingText: String,
-    isEstimated: Boolean,
-    showDivider: Boolean,
-    onClick: () -> Unit
+private fun AddPurchaseDialog(
+    form: AddFormState,
+    onDismiss: () -> Unit,
+    onNameChange: (String) -> Unit,
+    onDateChange: (String) -> Unit,
+    onQuantityChange: (String) -> Unit,
+    onSubmit: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 14.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = name, fontSize = 15.sp)
-            if (isEstimated) {
-                Spacer(modifier = Modifier.width(6.dp))
-                Surface(
-                    color = PrimaryGreenLight,
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Text(
-                        text = "推定",
-                        color = PrimaryGreen,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp)
-                    )
-                }
+    val nameError = form.nameError?.let {
+        when (it) {
+            NameError.EMPTY -> stringResource(R.string.list_add_error_name_empty)
+            NameError.TOO_LONG ->
+                stringResource(R.string.list_add_error_name_too_long, ShoppingListViewModel.MAX_NAME_LENGTH)
+        }
+    }
+    val dateError = form.dateError?.let {
+        when (it) {
+            DateError.INVALID -> stringResource(R.string.list_add_error_date_invalid)
+            DateError.FUTURE -> stringResource(R.string.list_add_error_date_future)
+        }
+    }
+    val quantityError = form.quantityError?.let {
+        when (it) {
+            QuantityError.INVALID -> stringResource(R.string.list_add_error_quantity_invalid)
+            QuantityError.OUT_OF_RANGE ->
+                stringResource(R.string.list_add_error_quantity_range, ShoppingListViewModel.MAX_QUANTITY)
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.list_add_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = form.name,
+                    onValueChange = onNameChange,
+                    label = { Text(stringResource(R.string.list_add_name)) },
+                    singleLine = true,
+                    isError = nameError != null,
+                    supportingText = nameError?.let { { Text(it) } },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = form.date,
+                    onValueChange = onDateChange,
+                    label = { Text(stringResource(R.string.list_add_date)) },
+                    singleLine = true,
+                    isError = dateError != null,
+                    supportingText = dateError?.let { { Text(it) } },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = form.quantity,
+                    onValueChange = onQuantityChange,
+                    label = { Text(stringResource(R.string.list_add_quantity)) },
+                    singleLine = true,
+                    isError = quantityError != null,
+                    supportingText = quantityError?.let { { Text(it) } },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onSubmit, enabled = !form.isSaving) {
+                Text(stringResource(R.string.list_add_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.list_add_cancel))
             }
         }
-        Text(text = remainingText, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-    }
-    if (showDivider) {
-        Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
-    }
+    )
 }

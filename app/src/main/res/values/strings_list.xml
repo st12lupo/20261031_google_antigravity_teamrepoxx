@@ -1,0 +1,32 @@
+<resources>
+    <string name="list_title">買い物リスト</string>
+    <string name="list_add_manual">手動で追加</string>
+    <string name="list_scan_receipt">レシートを撮影</string>
+    <string name="list_section_urgent">なくなりそう %1$d 点</string>
+    <string name="list_section_safe">まだ大丈夫</string>
+    <string name="list_estimated">推定</string>
+    <string name="list_action_purchased">購入済み</string>
+    <string name="list_action_still_have">まだある</string>
+    <string name="list_action_do_not_buy">もう買わない</string>
+    <string name="list_remaining_overdue">%1$d 日過ぎています</string>
+    <string name="list_remaining_today">今日なくなりそう</string>
+    <string name="list_remaining_days">あと %1$d 日</string>
+    <string name="list_empty_title">買い物リストは空です</string>
+    <string name="list_empty_body">レシートを撮影するか、手動で購入を追加すると、なくなりそうな時期を予測します。</string>
+    <string name="list_loading">読み込み中</string>
+    <string name="list_error_title">買い物リストを読み込めませんでした</string>
+    <string name="list_error_retry">再読み込み</string>
+    <string name="list_action_failed">操作に失敗しました。もう一度お試しください</string>
+    <string name="list_add_title">購入を手動で追加</string>
+    <string name="list_add_name">商品名</string>
+    <string name="list_add_date">購入日 (例 2026-10-31)</string>
+    <string name="list_add_quantity">数量</string>
+    <string name="list_add_save">追加</string>
+    <string name="list_add_cancel">キャンセル</string>
+    <string name="list_add_error_name_empty">商品名を入力してください</string>
+    <string name="list_add_error_name_too_long">商品名は %1$d 文字以内で入力してください</string>
+    <string name="list_add_error_date_invalid">yyyy-MM-dd の形式で、実在する日付を入力してください</string>
+    <string name="list_add_error_date_future">未来の日付は指定できません</string>
+    <string name="list_add_error_quantity_invalid">数量は整数で入力してください</string>
+    <string name="list_add_error_quantity_range">数量は 1〜%1$d で入力してください</string>
+</resources>
