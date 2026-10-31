@@ -1,0 +1,173 @@
+<title>レシート消耗品リマインダー 要件定義</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 構成図と同じ紙面。ID を左列に揃えて、要件を番号で参照しやすくする */
+:root {
+  --paper: #f2f5f3; --surface: #ffffff; --ink: #1b2623; --muted: #5a6864;
+  --line: #cdd6d2; --accent: #0a6b58; --accent-soft: #dcefe9;
+  --sans: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #121a18; --surface: #1a2421; --ink: #e6eeeb; --muted: #9fafaa;
+  --line: #33423e; --accent: #62c9b1; --accent-soft: #1b3a33; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #121a18; --surface: #1a2421; --ink: #e6eeeb; --muted: #9fafaa;
+  --line: #33423e; --accent: #62c9b1; --accent-soft: #1b3a33; color-scheme: dark }
+body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.75;
+  padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 860px; margin-inline: auto; display: grid; gap: 44px; }
+main > *, .stack > * { min-width: 0; }
+h1, h2, h3, p, ul { margin: 0; }
+h1 { font-size: clamp(26px, 5vw, 36px); line-height: 1.35; text-wrap: balance; }
+h2 { font-size: 21px; line-height: 1.4; }
+h3 { font-size: 15px; color: var(--accent); }
+header { display: grid; gap: 10px; }
+.meta { color: var(--muted); font-size: 13px; }
+.stack { display: grid; gap: 14px; }
+.group { display: grid; gap: 6px; }
+ul { padding-left: 1.2em; display: grid; gap: 6px; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.reqs { display: grid; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.req { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--line); }
+.req:last-child { border-bottom: 0; }
+.req b { font-family: var(--mono); font-weight: 500; font-size: 13px; color: var(--accent); line-height: 1.9; }
+.req span { min-width: 0; }
+.open { background: var(--accent-soft); border-radius: 4px; padding: 14px 18px; }
+</style>
+
+<main>
+  <header>
+    <h1>レシート消耗品リマインダー 要件定義</h1>
+    <p class="meta">最終更新 2026-10-31 / 確定した要件の一覧(実装未着手)</p>
+  </header>
+
+  <section class="stack">
+    <h2>目的</h2>
+    <p>レシートの写真から購入履歴をため、消耗品がなくなる時期を予測する。登録したスーパーの近くに来たら、なくなりそうなものを自動で通知し、買い忘れを防ぐ。</p>
+  </section>
+
+  <section class="stack">
+    <h2>利用者と範囲</h2>
+    <ul>
+      <li>利用者: チームのメンバーが、それぞれ自分の端末で使う</li>
+      <li>配布: APK を直接インストールする(Google Play では公開しない)</li>
+      <li>データ: 端末ごとに保存し、端末間で共有しない</li>
+    </ul>
+    <div class="group">
+      <h3>初版の対象外</h3>
+      <ul>
+        <li>複数端末での同期、家族との共有、ログイン</li>
+        <li>機種変更時のデータ引き継ぎ</li>
+        <li>店舗ごとの通知商品の絞り込み</li>
+        <li>Google Play services を搭載していない端末</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>機能要件</h2>
+    <div class="group"><h3>レシート取込</h3><div class="reqs">
+      <div class="req"><b>R-1</b><span>カメラでレシートを撮影し、台形補正して取り込める</span></div>
+      <div class="req"><b>R-2</b><span>日本語のレシートを端末内で文字認識する(API キーと課金なし)</span></div>
+      <div class="req"><b>R-3</b><span>店名、日付、商品名、数量、金額、合計金額を抽出する。合計、小計、税、お預かり、釣銭などの行は商品にしない</span></div>
+      <div class="req"><b>R-4</b><span>保存前に必ず確認画面を表示し、すべての項目を修正できる</span></div>
+      <div class="req"><b>R-5</b><span>店名、日付、合計金額が一致するレシートは保存前に警告する。そのまま保存もできる</span></div>
+      <div class="req"><b>R-6</b><span>保存後にレシート画像を削除し、読み取ったデータだけを残す</span></div>
+    </div></div>
+    <div class="group"><h3>商品の管理</h3><div class="reqs">
+      <div class="req"><b>P-1</b><span>全半角やカナの違い、記号、容量表記を吸収して、同じ商品にまとめる</span></div>
+      <div class="req"><b>P-2</b><span>確認画面での修正を別名として記憶し、次回から自動で適用する</span></div>
+      <div class="req"><b>P-3</b><span>日用品と定番食品(米、調味料、牛乳など)を予測対象として自動判定する。まず 50 品目ほどの辞書を用意する</span></div>
+      <div class="req"><b>P-4</b><span>予測対象にするかどうかを商品ごとに手動で変更できる</span></div>
+      <div class="req"><b>P-5</b><span>商品ごとに購入履歴と予測周期を確認できる</span></div>
+    </div></div>
+    <div class="group"><h3>購入の記録</h3><div class="reqs">
+      <div class="req"><b>B-1</b><span>レシートがない購入を、商品、日付、数量を指定して手動で追加できる</span></div>
+      <div class="req"><b>B-2</b><span>買い物リストで「購入済み」にできる</span></div>
+      <div class="req"><b>B-3</b><span>「購入済み」または手動追加から 3 日以内に同じ商品をレシートで取り込んだら 1 件にまとめ、レシートの日付と数量を優先する</span></div>
+    </div></div>
+    <div class="group"><h3>消費予測</h3><div class="reqs">
+      <div class="req"><b>F-1</b><span>購入 2 回以上の商品は、1 個あたりの購入間隔の中央値を周期とする</span></div>
+      <div class="req"><b>F-2</b><span>切れる日は、直近の購入日に「周期 × 購入数量」を足して求める</span></div>
+      <div class="req"><b>F-3</b><span>購入 1 回の商品は、カテゴリ別の既定周期で予測し、「推定」と表示する</span></div>
+      <div class="req"><b>F-4</b><span>周期の 2 割(最短 2 日、最長 7 日)以内に入った商品と、切れる日を過ぎた商品を「なくなりそう」と判定する</span></div>
+      <div class="req"><b>F-5</b><span>「まだある」で切れる日を後ろにずらし、周期の補正に反映する</span></div>
+      <div class="req"><b>F-6</b><span>「もう買わない」で予測対象から外す。次にレシートで購入すると自動で戻す</span></div>
+    </div></div>
+    <div class="group"><h3>買い物リスト</h3><div class="reqs">
+      <div class="req"><b>L-1</b><span>なくなりそうな順に、残り日数とともに表示する</span></div>
+      <div class="req"><b>L-2</b><span>各商品で「購入済み」「まだある」「もう買わない」を操作できる</span></div>
+    </div></div>
+    <div class="group"><h3>店舗と通知</h3><div class="reqs">
+      <div class="req"><b>S-1</b><span>現在地を店舗として登録できる。店舗の一覧表示と削除もできる</span></div>
+      <div class="req"><b>S-2</b><span>通知半径の既定は 200m で、店舗ごとに変更できる</span></div>
+      <div class="req"><b>S-3</b><span>店舗ごとに通知のオン・オフを切り替えられる</span></div>
+      <div class="req"><b>S-4</b><span>通知する時間帯をアプリ全体で 1 つ設定できる。既定は 8:00〜21:00 で、時間外は通知しない</span></div>
+      <div class="req"><b>S-5</b><span>登録店舗の範囲に入り、なくなりそうな商品があるときだけ通知する(例:「洗剤など 3 点がなくなりそうです」)</span></div>
+      <div class="req"><b>S-6</b><span>同じ店舗での通知は 1 日 1 回までとする</span></div>
+      <div class="req"><b>S-7</b><span>通知をタップすると買い物リストを開く</span></div>
+      <div class="req"><b>S-8</b><span>初版では全商品を通知の対象とする</span></div>
+    </div></div>
+    <div class="group"><h3>データの削除</h3><div class="reqs">
+      <div class="req"><b>D-1</b><span>履歴と店舗を全件削除できる</span></div>
+    </div></div>
+  </section>
+
+  <section class="stack">
+    <h2>非機能要件</h2>
+    <div class="reqs">
+      <div class="req"><b>N-1</b><span>Android ネイティブアプリとし、minSdk は 26 とする</span></div>
+      <div class="req"><b>N-2</b><span>サーバーを持たず、購入データとレシート画像を外部に送らない</span></div>
+      <div class="req"><b>N-3</b><span>購入履歴と位置情報を含むため、Android の自動バックアップを無効にする</span></div>
+      <div class="req"><b>N-4</b><span>バックグラウンド位置情報は、最初の店舗登録時に理由を説明してから要求する</span></div>
+      <div class="req"><b>N-5</b><span>位置情報や通知の権限を拒否しても、店舗通知以外の機能は使える</span></div>
+      <div class="req"><b>N-6</b><span>端末の再起動後とアプリの更新後に、店舗の監視を自動で再開する</span></div>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>受け入れの基準</h2>
+    <ul>
+      <li>検証は Android Studio で行う</li>
+      <li>単体テストが通る(レシート解析、名寄せ、消費予測)</li>
+      <li>Play services 入りのエミュレータで、取込からリスト表示まで動く</li>
+      <li>擬似位置情報で店舗通知が届く</li>
+      <li>実機で実レシート 10 枚ほどを試し、商品行の 8 割以上を修正なしで読める(目安。実機で試すまで達成できるかは不明)</li>
+      <li>実際の店舗で通知が届く(実機でのみ確認できる)</li>
+    </ul>
+  </section>
+
+  <section class="stack">
+    <h2>既知の制約</h2>
+    <ul>
+      <li>Android の省電力制御により、通知が数分遅れることがある</li>
+      <li>印字が薄いレシートや略称の多い商品名は誤読しやすい</li>
+      <li>既定周期は目安の値で、実際の消費量とは異なる場合がある</li>
+    </ul>
+  </section>
+
+  <section class="stack">
+    <h2>開発の進め方</h2>
+    <ul>
+      <li>ソース管理: <a href="https://github.com/st12lupo/20261031_google_antigravity_teamrepoxx">st12lupo/20261031_google_antigravity_teamrepoxx</a></li>
+      <li>ブランチ: 機能ごとにブランチを切り、PR のレビュー後に main へマージする</li>
+      <li>分担: 実装は Claude、Android Studio での確認とレビューはチームが行う</li>
+      <li>署名: 配布用 APK はチーム共通の鍵で署名し、鍵はリポジトリの外で管理する</li>
+      <li>期限: なし。各段階の完了条件を満たしてから次へ進む</li>
+    </ul>
+  </section>
+
+  <section class="stack open">
+    <h2>未確定</h2>
+    <ul>
+      <li>GitHub リポジトリの公開設定</li>
+      <li>画面のモックアップ</li>
+      <li>商品辞書と既定周期の一覧</li>
+      <li>段階ごとのテスト項目</li>
+      <li>通知文と画面の文言</li>
+    </ul>
+  </section>
+</main>

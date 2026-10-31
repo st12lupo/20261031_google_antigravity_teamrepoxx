@@ -1,0 +1,210 @@
+<title>レシート消耗品リマインダー 構成</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 感熱紙のレシートのように一列で読み進める構成図。層 → 流れ → データの順 */
+:root {
+  --paper: #f2f5f3; --surface: #ffffff; --ink: #1b2623; --muted: #5a6864;
+  --line: #cdd6d2; --accent: #0a6b58; --accent-soft: #dcefe9;
+  --alert: #93540a; --alert-soft: #f8ebd6;
+  --sans: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #121a18; --surface: #1a2421; --ink: #e6eeeb; --muted: #9fafaa;
+  --line: #33423e; --accent: #62c9b1; --accent-soft: #1b3a33;
+  --alert: #e8b168; --alert-soft: #3a2d19; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #121a18; --surface: #1a2421; --ink: #e6eeeb; --muted: #9fafaa;
+  --line: #33423e; --accent: #62c9b1; --accent-soft: #1b3a33;
+  --alert: #e8b168; --alert-soft: #3a2d19; color-scheme: dark }
+body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.75;
+  padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 920px; margin-inline: auto; display: grid; gap: 52px; }
+main > * { min-width: 0; }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: clamp(26px, 5vw, 36px); line-height: 1.35; text-wrap: balance; }
+h2 { font-size: 21px; line-height: 1.4; text-wrap: balance; }
+h3 { font-size: 15px; line-height: 1.5; }
+code, .mono { font-family: var(--mono); font-size: .9em; }
+.muted { color: var(--muted); }
+.stack { display: grid; gap: 16px; }
+.stack > * { min-width: 0; }
+header { display: grid; gap: 12px; }
+.lead { max-width: 40em; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 4px 0 0; padding: 0; }
+.tags li { border: 1px solid var(--line); border-radius: 4px; padding: 2px 10px; font-size: 13px; }
+
+.layers { display: grid; gap: 0; }
+.layer { display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: 16px; padding-block: 16px; border-top: 1px dashed var(--line); }
+.layer:last-child { border-bottom: 1px dashed var(--line); }
+.layer-name { font-weight: 700; }
+.layer-name small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+.boxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; min-width: 0; }
+.box b { display: block; }
+.box span { display: block; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.box.ext { background: var(--accent-soft); border-color: transparent; }
+.legend { font-size: 13px; color: var(--muted); }
+.swatch { display: inline-block; width: 11px; height: 11px; border-radius: 2px; background: var(--accent-soft); border: 1px solid var(--accent); vertical-align: -1px; margin-right: 4px; }
+
+.flow { display: grid; gap: 10px; }
+.flow ol { list-style: none; counter-reset: s; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.flow li { counter-increment: s; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 14px; line-height: 1.6; min-width: 0; }
+.flow li::before { content: counter(s); display: block; font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 500; }
+.flow li small { display: block; color: var(--muted); font-size: 12px; font-family: var(--mono); overflow-wrap: anywhere; }
+.flow li.stop { background: var(--alert-soft); border-color: transparent; }
+
+.calc { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 18px 20px; display: grid; gap: 10px; font-family: var(--mono); font-size: 13.5px; line-height: 1.7; }
+.calc div { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-bottom: 1px dotted var(--line); padding-bottom: 8px; }
+.calc div:last-child { border-bottom: 0; padding-bottom: 0; }
+.calc span:first-child { font-family: var(--sans); }
+.calc .total { font-weight: 500; color: var(--alert); }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 12px; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+td code { overflow-wrap: anywhere; }
+
+pre { margin: 0; overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; font-family: var(--mono); font-size: 13px; line-height: 1.7; }
+.notes { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; max-width: 44em; }
+@media (max-width: 560px) { .layer { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
+</style>
+
+<main>
+  <header>
+    <h1>レシート消耗品リマインダーの構成</h1>
+    <p class="lead">レシートの写真から購入履歴をため、消耗品がなくなる時期を予測して、登録したスーパーの近くで通知する Android アプリの設計です。サーバーを持たず、すべて端末内で処理します。</p>
+    <ul class="tags">
+      <li>設計段階(実装未着手)</li>
+      <li>Kotlin / Jetpack Compose</li>
+      <li>minSdk 26</li>
+      <li>API キー不要</li>
+    </ul>
+  </header>
+
+  <section class="stack">
+    <h2>全体の構成</h2>
+    <p>画面はデータ層を直接触らず、ViewModel を通します。予測はフレームワークに依存しない Kotlin のコードに分け、端末なしで単体テストできるようにします。</p>
+    <div class="layers">
+      <div class="layer">
+        <div class="layer-name">画面<small>Compose / ViewModel</small></div>
+        <div class="boxes">
+          <div class="box"><b>買い物リスト</b><span>なくなりそうな順に表示。購入済み、まだある、もう買わない、手動で追加</span></div>
+          <div class="box"><b>レシート取込</b><span>読み取り結果の確認と修正</span></div>
+          <div class="box"><b>商品</b><span>購入履歴、周期、予測対象の切り替え</span></div>
+          <div class="box"><b>店舗</b><span>現在地で登録、通知半径とオン・オフ、通知する時間帯</span></div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">処理<small>Kotlin のみ</small></div>
+        <div class="boxes">
+          <div class="box"><b>ReceiptParser</b><span>OCR の行から商品、数量、金額、日付、店名を抽出</span></div>
+          <div class="box"><b>ProductNormalizer</b><span>表記の統一、別名の照合、対象商品の判定</span></div>
+          <div class="box"><b>ConsumptionPredictor</b><span>周期、切れる日、なくなりそうかの判定</span></div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">端末機能の接続<small>Android 依存</small></div>
+        <div class="boxes">
+          <div class="box"><b>ReceiptScanner</b><span>撮影と OCR を呼び出し、画像を削除</span></div>
+          <div class="box"><b>GeofenceManager</b><span>店舗の登録と再登録</span></div>
+          <div class="box"><b>GeofenceReceiver / BootReceiver</b><span>店舗への進入と端末の再起動を受信</span></div>
+          <div class="box"><b>StoreVisitWorker</b><span>通知の判定と送信</span></div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">データと外部<small>端末内</small></div>
+        <div class="boxes">
+          <div class="box"><b>Room</b><span>購入履歴、商品、別名、店舗</span></div>
+          <div class="box ext"><b>ML Kit</b><span>Document Scanner、日本語 Text Recognition v2</span></div>
+          <div class="box ext"><b>Google Play services</b><span>Geofencing API、現在地の取得</span></div>
+          <div class="box ext"><b>Android</b><span>WorkManager、通知</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="legend"><span class="swatch"></span>自分たちで作らず、利用するライブラリやサービス</p>
+  </section>
+
+  <section class="stack">
+    <h2>処理の流れ</h2>
+    <div class="flow">
+      <h3>レシートを取り込む</h3>
+      <ol>
+        <li>撮影と台形補正<small>ReceiptScanner</small></li>
+        <li>端末内で文字認識<small>ML Kit</small></li>
+        <li>行を商品と金額に分解<small>ReceiptParser</small></li>
+        <li>商品名を名寄せ<small>ProductNormalizer</small></li>
+        <li class="stop">利用者が確認と修正。同じレシートなら警告</li>
+        <li>履歴と別名を保存し、画像を削除。3 日以内の同じ購入は 1 件にまとめる<small>Room</small></li>
+      </ol>
+    </div>
+    <div class="flow">
+      <h3>店舗の近くで通知する</h3>
+      <ol>
+        <li>半径 200m に進入<small>GeofenceReceiver</small></li>
+        <li>通知処理を起動<small>StoreVisitWorker</small></li>
+        <li>通知オフ、時間帯の外、今日この店舗で通知済みなら終了</li>
+        <li>履歴から予測を計算<small>ConsumptionPredictor</small></li>
+        <li>対象がなければ終了</li>
+        <li>通知し、タップでリストを開く</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>消費予測の計算</h2>
+    <p>周期は 1 個あたりの日数で持ち、購入数量を掛けて切れる日を出します。予測結果は保存せず、表示と通知のたびに履歴から計算するので、履歴を修正すればそのまま反映されます。</p>
+    <div class="calc" aria-label="洗剤の計算例">
+      <div><span>例: 洗剤の周期(購入間隔 ÷ 数量 の中央値)</span><span>30 日 / 個</span></div>
+      <div><span>10 月 1 日に 2 個購入</span><span>30 × 2 = 60 日分</span></div>
+      <div><span>切れる日</span><span>11 月 30 日</span></div>
+      <div><span>通知の余裕(周期の 2 割、2〜7 日に収める)</span><span>6 日</span></div>
+      <div class="total"><span>「なくなりそう」になる日</span><span>11 月 24 日</span></div>
+    </div>
+    <ul class="notes">
+      <li>購入が 1 回だけの商品は、カテゴリ別の既定周期で計算し、「推定」と表示します。</li>
+      <li>「まだある」を押すと切れる日を後ろにずらし、その後の周期の補正にも使います。</li>
+      <li>「もう買わない」で予測から外した商品は、次にレシートで購入すると自動で戻ります。</li>
+    </ul>
+  </section>
+
+  <section class="stack">
+    <h2>データの持ち方</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>テーブル</th><th>役割</th><th>主な項目</th></tr></thead>
+        <tbody>
+          <tr><td><code>Receipt</code></td><td>レシート 1 枚</td><td><code>storeName, purchasedOn, totalAmount</code></td></tr>
+          <tr><td><code>Purchase</code></td><td>購入 1 件。レシートなしの購入も含む</td><td><code>receiptId(任意), productId, purchasedOn, quantity, price, source</code></td></tr>
+          <tr><td><code>Product</code></td><td>名寄せ後の商品</td><td><code>name, category, isTracked, snoozedUntil</code></td></tr>
+          <tr><td><code>ProductAlias</code></td><td>レシート表記と商品の対応</td><td><code>rawText, productId</code></td></tr>
+          <tr><td><code>Store</code></td><td>通知する店舗</td><td><code>name, latitude, longitude, radiusMeters, notifyEnabled, lastNotifiedOn</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">レシート画像はどのテーブルにも保存しません。</p>
+  </section>
+
+  <section class="stack">
+    <h2>フォルダ構成</h2>
+<pre>app/src/main/java/.../
+├─ data/        Room の Entity と DAO
+├─ receipt/     ReceiptScanner, ReceiptParser, ProductNormalizer
+├─ prediction/  ConsumptionPredictor
+├─ geofence/    GeofenceManager, GeofenceReceiver, BootReceiver, StoreVisitWorker
+└─ ui/          各画面の Compose と ViewModel</pre>
+  </section>
+
+  <section class="stack">
+    <h2>設計上の制約</h2>
+    <ul class="notes">
+      <li>バックグラウンド位置情報を拒否されると店舗通知は動きませんが、ほかの機能は使えます。</li>
+      <li>Android の省電力制御により、通知が数分遅れることがあります。</li>
+      <li>データは端末ごとに保存し、共有や機種変更時の引き継ぎは初版の対象外です。</li>
+      <li>APK はチーム共通の署名鍵で署名します。別の鍵では上書きインストールできません。</li>
+    </ul>
+  </section>
+</main>
