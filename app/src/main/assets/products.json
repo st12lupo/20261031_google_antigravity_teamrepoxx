@@ -1,0 +1,326 @@
+[
+  {
+    "name": "トイレットペーパー",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾄｲﾚｯﾄﾍﾟｰﾊﾟｰ", "トイレット", "再生紙ロール", "12ロール", "トイレットロール"]
+  },
+  {
+    "name": "ティッシュペーパー",
+    "category": "日用品",
+    "defaultCycleDays": 25,
+    "keywords": ["ﾃｨｯｼｭ", "ﾃｨｼｭ", "ボックスティッシュ", "箱ティッシュ", "ティシュー", "5個パック"]
+  },
+  {
+    "name": "キッチンペーパー",
+    "category": "日用品",
+    "defaultCycleDays": 20,
+    "keywords": ["ｷｯﾁﾝﾍﾟｰﾊﾟｰ", "ｷｯﾁﾝﾀｵﾙ", "クッキングペーパー", "キッチンタオル"]
+  },
+  {
+    "name": "ラップ",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾗｯﾌﾟ", "サランラップ", "クレラップ", "食品用ラップ", "ポリラップ"]
+  },
+  {
+    "name": "アルミホイル",
+    "category": "日用品",
+    "defaultCycleDays": 45,
+    "keywords": ["ｱﾙﾐﾎｲﾙ", "ホイル", "アルミ箔"]
+  },
+  {
+    "name": "食器用洗剤",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ｼｮｯｷｾﾝｻﾞｲ", "台所洗剤", "台所用洗剤", "キッチン洗剤", "ｼｮｯｷﾖｳｾﾝｻﾞｲ", "キュキュット", "ジョイ", "マジカ"]
+  },
+  {
+    "name": "食器洗いスポンジ",
+    "category": "日用品",
+    "defaultCycleDays": 20,
+    "keywords": ["ｷｯﾁﾝｽﾎﾟﾝｼﾞ", "ｽﾎﾟﾝｼﾞ", "キッチンスポンジ", "クリーナースポンジ"]
+  },
+  {
+    "name": "洗濯洗剤",
+    "category": "日用品",
+    "defaultCycleDays": 25,
+    "keywords": ["ｾﾝﾀｸｾﾝｻﾞｲ", "液体洗剤", "ジェルボール", "アタック", "ボールド", "ナノックス", "ニュービーズ"]
+  },
+  {
+    "name": "柔軟剤",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ｼﾞｭｳﾅﾝｻﾞｲ", "ソフラン", "レノア", "ハミング", "フレアフレグランス"]
+  },
+  {
+    "name": "洗濯ネット",
+    "category": "日用品",
+    "defaultCycleDays": 180,
+    "keywords": ["ｾﾝﾀｸﾈｯﾄ", "ランドリーネット"]
+  },
+  {
+    "name": "お風呂用洗剤",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾌﾛｾﾝｻﾞｲ", "バスクリーナー", "ﾊﾞｽﾏｼﾞｯｸﾘﾝ", "バスマジックリン", "ルックバスタブ"]
+  },
+  {
+    "name": "トイレ用洗剤",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾄｲﾚｾﾝｻﾞｲ", "トイレクリーナー", "ﾄｲﾚﾏｼﾞｯｸﾘﾝ", "トイレマジックリン", "サンポール"]
+  },
+  {
+    "name": "トイレ掃除シート",
+    "category": "日用品",
+    "defaultCycleDays": 20,
+    "keywords": ["ﾄｲﾚｼｰﾄ", "トイレクイックル", "クリーナーシート", "流せるトイレクリーナー"]
+  },
+  {
+    "name": "シャンプー",
+    "category": "日用品",
+    "defaultCycleDays": 40,
+    "keywords": ["ｼｬﾝﾌﾟｰ", "ﾍｱｼｬﾝﾌﾟｰ", "ヘアシャンプー", "薬用シャンプー"]
+  },
+  {
+    "name": "コンディショナー",
+    "category": "日用品",
+    "defaultCycleDays": 45,
+    "keywords": ["ｺﾝﾃﾞｨｼｮﾅｰ", "ﾘﾝｽ", "ヘアトリートメント", "トリートメント", "ヘアリンス"]
+  },
+  {
+    "name": "ボディーソープ",
+    "category": "日用品",
+    "defaultCycleDays": 35,
+    "keywords": ["ﾎﾞﾃﾞｨｿｰﾌﾟ", "ﾎﾞﾃﾞｨｳｫｯｼｭ", "ボディソープ", "ビオレu", "バウンシア"]
+  },
+  {
+    "name": "固形石鹸",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ｺｹｲｾｯｹﾝ", "せっけん", "ソープバー", "花王石鹸", "牛乳石鹸"]
+  },
+  {
+    "name": "ハンドソープ",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾊﾝﾄﾞｿｰﾌﾟ", "泡ハンドソープ", "キレイキレイ", "ビオレガード", "薬用ハンドソープ"]
+  },
+  {
+    "name": "歯磨き粉",
+    "category": "日用品",
+    "defaultCycleDays": 45,
+    "keywords": ["ﾊﾐｶﾞｷ", "ﾊﾌﾞﾗｼｺ", "デンタルペースト", "クリニカ", "オーラツー", "ガードハロー"]
+  },
+  {
+    "name": "歯ブラシ",
+    "category": "日用品",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾊﾌﾞﾗｼ", "デンタルブラシ", "コンパクトハブラシ", "ハブラシ"]
+  },
+  {
+    "name": "メイク落とし",
+    "category": "日用品",
+    "defaultCycleDays": 45,
+    "keywords": ["ｸﾚﾝｼﾞﾝｸﾞ", "クレンジングオイル", "メイク落としシート", "クレンジングバーム"]
+  },
+  {
+    "name": "洗顔料",
+    "category": "日用品",
+    "defaultCycleDays": 40,
+    "keywords": ["ｾﾝｶﾞﾝ", "洗顔フォーム", "洗顔ペースト", "洗顔パウダー"]
+  },
+  {
+    "name": "綿棒",
+    "category": "日用品",
+    "defaultCycleDays": 90,
+    "keywords": ["ﾒﾝﾎﾞｳ", "抗菌綿棒", "紙軸綿棒", "スパイラル綿棒"]
+  },
+  {
+    "name": "ゴミ袋",
+    "category": "日用品",
+    "defaultCycleDays": 20,
+    "keywords": ["ｺﾞﾐﾌﾞｸﾛ", "ﾎﾟﾘﾌﾞｸﾛ", "とって付きポリ袋", "半透明ゴミ袋", "45Lポリ袋"]
+  },
+  {
+    "name": "排水口ネット",
+    "category": "日用品",
+    "defaultCycleDays": 25,
+    "keywords": ["ﾊｲｽｲｺｳﾈｯﾄ", "水切りネット", "浅型排水口ネット", "三角コーナーネット"]
+  },
+  {
+    "name": "牛乳",
+    "category": "定番食品",
+    "defaultCycleDays": 5,
+    "keywords": ["ｷﾞｭｳﾆｭｳ", "成分無調整牛乳", "低脂肪乳", "北海道牛乳", "おいしい牛乳"]
+  },
+  {
+    "name": "卵",
+    "category": "定番食品",
+    "defaultCycleDays": 7,
+    "keywords": ["ﾀﾏｺﾞ", "たまご", "鶏卵", "生卵", "赤玉", "白玉", "10個パック"]
+  },
+  {
+    "name": "食パン",
+    "category": "定番食品",
+    "defaultCycleDays": 4,
+    "keywords": ["ｼｮｸﾊﾟﾝ", "パン", "トースト", "超熟", "本仕込", "ロイヤルブレッド"]
+  },
+  {
+    "name": "米",
+    "category": "定番食品",
+    "defaultCycleDays": 25,
+    "keywords": ["ｺﾒ", "お米", "コシヒカリ", "あきたこまち", "ひとめぼれ", "無洗米", "精米", "白米"]
+  },
+  {
+    "name": "納豆",
+    "category": "定番食品",
+    "defaultCycleDays": 5,
+    "keywords": ["ﾅｯﾄｳ", "極小粒納豆", "おかめ納豆", "国産納豆", "金のつぶ"]
+  },
+  {
+    "name": "豆腐",
+    "category": "定番食品",
+    "defaultCycleDays": 4,
+    "keywords": ["ﾄｳﾌ", "木綿豆腐", "絹ごし豆腐", "もめん", "きぬ", "充填豆腐"]
+  },
+  {
+    "name": "ヨーグルト",
+    "category": "定番食品",
+    "defaultCycleDays": 7,
+    "keywords": ["ﾖｰｸﾞﾙﾄ", "プレーンヨーグルト", "ブルガリアヨーグルト", "ビヒダス", "恵ヨーグルト"]
+  },
+  {
+    "name": "バター",
+    "category": "定番食品",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾊﾞﾀｰ", "有塩バター", "無塩バター", "雪印バター", "よつ葉バター"]
+  },
+  {
+    "name": "マーガリン",
+    "category": "定番食品",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾏｰｶﾞﾘﾝ", "ネオソフト", "コーンソフト", "ラーマ"]
+  },
+  {
+    "name": "チーズ",
+    "category": "定番食品",
+    "defaultCycleDays": 14,
+    "keywords": ["ﾁｰｽﾞ", "スライスチーズ", "とろけるチーズ", "ピザ用チーズ", "プロセスチーズ"]
+  },
+  {
+    "name": "醤油",
+    "category": "調味料",
+    "defaultCycleDays": 45,
+    "keywords": ["ｼｮｳﾕ", "こいくちしょうゆ", "うすくちしょうゆ", "丸大豆醤油", "キッコーマン"]
+  },
+  {
+    "name": "味噌",
+    "category": "調味料",
+    "defaultCycleDays": 45,
+    "keywords": ["ﾐｿ", "合わせみそ", "こうじみそ", "赤だし", "料亭の味", "マルコメ"]
+  },
+  {
+    "name": "みりん",
+    "category": "調味料",
+    "defaultCycleDays": 60,
+    "keywords": ["ﾐﾘﾝ", "本みりん", "みりん風調味料", "日の出みりん"]
+  },
+  {
+    "name": "料理酒",
+    "category": "調味料",
+    "defaultCycleDays": 60,
+    "keywords": ["ﾘｮｳﾘｼｭ", "清酒", "醸造調味料", "料理の酒"]
+  },
+  {
+    "name": "砂糖",
+    "category": "調味料",
+    "defaultCycleDays": 60,
+    "keywords": ["ｻﾄｳ", "上白糖", "三温糖", "グラニュー糖", "スプーン印"]
+  },
+  {
+    "name": "塩",
+    "category": "調味料",
+    "defaultCycleDays": 90,
+    "keywords": ["ｼｵ", "食塩", "精製塩", "あら塩", "伯方の塩", "瀬戸のほんじお"]
+  },
+  {
+    "name": "食用油",
+    "category": "調味料",
+    "defaultCycleDays": 45,
+    "keywords": ["ｼｮｸﾖｳｱﾌﾞﾗ", "サラダ油", "キャノーラ油", "日清キャノーラ", "調合油"]
+  },
+  {
+    "name": "オリーブオイル",
+    "category": "調味料",
+    "defaultCycleDays": 60,
+    "keywords": ["ｵﾘｰﾌﾞｵｲﾙ", "エキストラバージン", "ボスコ", "ピュアオリーブオイル"]
+  },
+  {
+    "name": "ごま油",
+    "category": "調味料",
+    "defaultCycleDays": 60,
+    "keywords": ["ｺﾞﾏｱﾌﾞﾗ", "純正ごま油", "かどや", "日清ごま油"]
+  },
+  {
+    "name": "マヨネーズ",
+    "category": "調味料",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾏﾖﾈｰｽﾞ", "キユーピー", "ピュアセレクト", "カロリーハーフ"]
+  },
+  {
+    "name": "ケチャップ",
+    "category": "調味料",
+    "defaultCycleDays": 45,
+    "keywords": ["ｹﾁｬｯﾌﾟ", "トマトケチャップ", "カゴメケチャップ", "デルモンテ"]
+  },
+  {
+    "name": "ソース",
+    "category": "調味料",
+    "defaultCycleDays": 60,
+    "keywords": ["ｿｰｽ", "中濃ソース", "ウスターソース", "とんかつソース", "ブルドック"]
+  },
+  {
+    "name": "カレールー",
+    "category": "調味料",
+    "defaultCycleDays": 30,
+    "keywords": ["ｶﾚｰﾙｰ", "バーモントカレー", "ジャワカレー", "ゴールデンカレー", "こくまろ"]
+  },
+  {
+    "name": "インスタントコーヒー",
+    "category": "飲料",
+    "defaultCycleDays": 30,
+    "keywords": ["ｺｰﾋｰ", "ネスカフェ", "ゴールドブレンド", "ブレンディ", "レギュラーソリュブル"]
+  },
+  {
+    "name": "麦茶",
+    "category": "飲料",
+    "defaultCycleDays": 30,
+    "keywords": ["ﾑｷﾞﾁｬ", "麦茶パック", "香ばし麦茶", "鶴瓶の麦茶", "水出し麦茶"]
+  },
+  {
+    "name": "鶏むね肉",
+    "category": "生鮮品",
+    "defaultCycleDays": 4,
+    "keywords": ["ﾄﾘﾑﾈﾆｸ", "若鶏むね", "鶏胸肉", "むね肉", "国産若鶏むね"]
+  },
+  {
+    "name": "豚こま肉",
+    "category": "生鮮品",
+    "defaultCycleDays": 4,
+    "keywords": ["ﾌﾞﾀｺﾏ", "豚こま切れ", "豚小間肉", "豚肉切り落とし"]
+  },
+  {
+    "name": "挽肉",
+    "category": "生鮮品",
+    "defaultCycleDays": 3,
+    "keywords": ["ﾋｷﾆｸ", "合挽肉", "豚ひき肉", "鶏ひき肉", "牛豚合挽"]
+  },
+  {
+    "name": "うどん",
+    "category": "定番食品",
+    "defaultCycleDays": 7,
+    "keywords": ["ｳﾄﾞﾝ", "ゆでうどん", "讃岐うどん", "冷凍うどん", "生うどん"]
+  }
+]
