@@ -4,7 +4,7 @@ import com.example.receiptreminder.domain.model.*
 import java.time.LocalDate
 
 /**
- * 画面モックアップ（mockups/*.dc.html）に基づく初期サンプルデータ
+ * 画面モックアップ（mockups ディレクトリの .dc.html）に基づく初期サンプルデータ
  */
 object SampleData {
     val today: LocalDate = LocalDate.now()
