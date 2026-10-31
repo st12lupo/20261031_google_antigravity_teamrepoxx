@@ -18,7 +18,7 @@ class DefaultReceiptParser : ReceiptParser {
             )
         }
 
-        val cleanedLines = ocrLines.map { it.trim() }.filter { it.isNotEmpty() }
+        val cleanedLines = ocrLines.map { normalizeYenMark(it.trim()) }.filter { it.isNotEmpty() }
 
         val storeName = extractStoreName(cleanedLines)
         val purchasedOnEpochDay = extractDate(cleanedLines)
@@ -33,6 +33,11 @@ class DefaultReceiptParser : ReceiptParser {
             totalAmount = finalTotal,
             items = items
         )
+    }
+
+    /** OCR が行末の金額の「¥」を「\」や「Y」と読み違えたものを戻す */
+    private fun normalizeYenMark(line: String): String {
+        return line.replace(Regex("(?<![A-Za-z0-9])[Yy\\\\＼]\\s*(?=[0-9Ool][0-9Ool,]*\\s*[※*＊軽内円)]?\\s*$)"), "¥")
     }
 
     private fun extractStoreName(lines: List<String>): String {
@@ -115,7 +120,9 @@ class DefaultReceiptParser : ReceiptParser {
     private fun extractTotalAmount(lines: List<String>): Int {
         val totalKeywords = listOf("合計", "お買上計", "税込計", "支払計")
         for (line in lines.reversed()) {
-            if (totalKeywords.any { line.contains(it) }) {
+            val compact = removeSpaces(line)
+            if (isDiscountKeywordLine(compact)) continue
+            if (totalKeywords.any { compact.contains(it) }) {
                 val amount = extractAmountFromLine(line)
                 if (amount > 0) return amount
             }
@@ -236,18 +243,30 @@ class DefaultReceiptParser : ReceiptParser {
             .replace('９', '9')
     }
 
+    /** 直前の商品に適用する値引の行か。「値引合計」は各商品の値引の集計なので含めない */
     private fun isDiscountLine(line: String): Boolean {
-        val keywords = listOf("値引", "割引", "値引き", "割引き", "-")
-        return keywords.any { line.contains(it) }
+        val compact = removeSpaces(line)
+        return isDiscountKeywordLine(compact) && !compact.contains("計")
+    }
+
+    private fun isDiscountKeywordLine(line: String): Boolean {
+        return line.contains("値引") || line.contains("割引")
     }
 
     private fun isExcludedLine(line: String): Boolean {
         val excludeKeywords = listOf(
             "合計", "小計", "消費税", "内税", "外税", "税抜", "税込",
             "お預かり", "お預り", "預かり", "預り", "お釣り", "釣銭", "釣り",
-            "現金", "クレジット", "ポイント", "電話番号", "TEL", "登録番号",
-            "レジ番号", "担当者", "領収", "レシート", "対象額", "税率", "値引", "割引"
+            "現金", "クレジット", "ポイント", "ﾎﾟｲﾝﾄ", "番号", "TEL",
+            "担当者", "領収", "レシート", "対象額", "税率", "値引", "割引",
+            "商品代金", "支払", "残高"
         )
-        return excludeKeywords.any { line.contains(it) }
+        val compact = removeSpaces(line)
+        return excludeKeywords.any { compact.contains(it) }
+    }
+
+    /** OCR が「合 計」のように文字の間に入れる半角・全角の空白を除く */
+    private fun removeSpaces(line: String): String {
+        return line.replace(Regex("[\\s　]"), "")
     }
 }
