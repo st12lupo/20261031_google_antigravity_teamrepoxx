@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>店舗と設定</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 980px; box-sizing: border-box; display: flex; flex-direction: column; background: #f2f5f3; color: #1b2623; font-family: 'BIZ UDPGothic', 'Yu Gothic', sans-serif; font-size: 15px; line-height: 1.5">
+  <div style="padding: 24px 16px 12px; display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 24px">店舗</h1>
+    <p style="margin: 0; color: #5a6864; font-size: 14px">登録した店舗の近くで、なくなりそうなものをお知らせします。</p>
+  </div>
+
+  <div style="flex-grow: 1; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px">
+    <a href="Alerts.dc.html" style="min-height: 52px; display: flex; align-items: center; justify-content: center; background: #0a6b58; border-radius: 6px; color: #ffffff; font-weight: 700; text-decoration: none">現在地を店舗として登録</a>
+
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+      <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px"><b>みどりマート 中央店</b><input type="checkbox" checked aria-label="みどりマート 中央店の通知" style="width: 22px; height: 22px; accent-color: #0a6b58"></label>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: #5a6864"><span>通知する範囲 半径 200m</span><span style="display: flex; gap: 4px"><button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #0a6b58; font: inherit">変更</button><button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #5a6864; font: inherit">削除</button></span></div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+      <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px"><b>ドラッグひかり 駅前店</b><input type="checkbox" checked aria-label="ドラッグひかり 駅前店の通知" style="width: 22px; height: 22px; accent-color: #0a6b58"></label>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: #5a6864"><span>通知する範囲 半径 300m</span><span style="display: flex; gap: 4px"><button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #0a6b58; font: inherit">変更</button><button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #5a6864; font: inherit">削除</button></span></div>
+    </div>
+
+    <div style="background: #e8ece9; border: 1px solid #cdd6d2; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+      <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px"><span><b>まるやまスーパー</b> <span style="font-size: 13px; color: #5a6864">通知オフ</span></span><input type="checkbox" aria-label="まるやまスーパーの通知" style="width: 22px; height: 22px; accent-color: #0a6b58"></label>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: #55625e"><span>通知する範囲 半径 200m</span><span style="display: flex; gap: 4px"><button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #0a6b58; font: inherit">変更</button><button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #55625e; font: inherit">削除</button></span></div>
+    </div>
+
+    <h2 style="margin: 8px 0 0; font-size: 14px; color: #5a6864">設定</h2>
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; display: flex; flex-direction: column">
+      <div style="min-height: 56px; box-sizing: border-box; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid #cdd6d2"><span>通知する時間帯</span><button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #0a6b58; font: inherit">8:00〜21:00</button></div>
+      <button style="min-height: 56px; padding: 8px 14px; background: transparent; border: 0; color: #a02c20; font: inherit; text-align: left">履歴と店舗をすべて削除</button>
+    </div>
+  </div>
+
+  <nav aria-label="メイン" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #ffffff; border-top: 1px solid #cdd6d2">
+    <a href="Main.dc.html" style="min-height: 56px; display: flex; align-items: center; justify-content: center; color: #5a6864; font-size: 14px; text-decoration: none">リスト</a>
+    <a href="Detail.dc.html" style="min-height: 56px; display: flex; align-items: center; justify-content: center; color: #5a6864; font-size: 14px; text-decoration: none">商品</a>
+    <a href="Stores.dc.html" style="min-height: 56px; display: flex; align-items: center; justify-content: center; color: #0a6b58; font-weight: 700; font-size: 14px; text-decoration: none">店舗</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

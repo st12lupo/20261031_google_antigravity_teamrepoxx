@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>買い物リスト</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 980px; box-sizing: border-box; display: flex; flex-direction: column; background: #f2f5f3; color: #1b2623; font-family: 'BIZ UDPGothic', 'Yu Gothic', sans-serif; font-size: 15px; line-height: 1.5">
+  <div style="padding: 24px 16px 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+    <h1 style="margin: 0; font-size: 24px">買い物リスト</h1>
+    <button style="min-height: 44px; padding: 0 14px; background: transparent; border: 1px solid #a9b6b1; border-radius: 6px; color: #1b2623; font: inherit; font-size: 14px">手動で追加</button>
+  </div>
+  <div style="flex-grow: 1; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 4px 0 0; font-size: 14px; color: #7a4507">なくなりそう 3 点</h2>
+
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline"><b style="font-size: 16px">牛乳</b><b style="color: #7a4507">1 日過ぎています</b></div>
+      <div style="display: flex; gap: 8px">
+        <button style="flex-grow: 1; min-height: 44px; background: #0a6b58; border: 0; border-radius: 6px; color: #ffffff; font: inherit; font-size: 14px">購入済み</button>
+        <button style="flex-grow: 1; min-height: 44px; background: transparent; border: 1px solid #a9b6b1; border-radius: 6px; color: #1b2623; font: inherit; font-size: 14px">まだある</button>
+        <button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #5a6864; font: inherit; font-size: 13px">もう買わない</button>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline"><b style="font-size: 16px">食器用洗剤</b><b style="color: #7a4507">あと 2 日</b></div>
+      <div style="display: flex; gap: 8px">
+        <button style="flex-grow: 1; min-height: 44px; background: #0a6b58; border: 0; border-radius: 6px; color: #ffffff; font: inherit; font-size: 14px">購入済み</button>
+        <button style="flex-grow: 1; min-height: 44px; background: transparent; border: 1px solid #a9b6b1; border-radius: 6px; color: #1b2623; font: inherit; font-size: 14px">まだある</button>
+        <button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #5a6864; font: inherit; font-size: 13px">もう買わない</button>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline"><b style="font-size: 16px">トイレットペーパー</b><b style="color: #7a4507">あと 4 日</b></div>
+      <div style="display: flex; gap: 8px">
+        <button style="flex-grow: 1; min-height: 44px; background: #0a6b58; border: 0; border-radius: 6px; color: #ffffff; font: inherit; font-size: 14px">購入済み</button>
+        <button style="flex-grow: 1; min-height: 44px; background: transparent; border: 1px solid #a9b6b1; border-radius: 6px; color: #1b2623; font: inherit; font-size: 14px">まだある</button>
+        <button style="min-height: 44px; padding: 0 10px; background: transparent; border: 0; color: #5a6864; font: inherit; font-size: 13px">もう買わない</button>
+      </div>
+    </div>
+
+    <h2 style="margin: 12px 0 0; font-size: 14px; color: #5a6864">まだ大丈夫</h2>
+    <div style="background: #ffffff; border: 1px solid #cdd6d2; border-radius: 6px; display: flex; flex-direction: column">
+      <div style="min-height: 52px; box-sizing: border-box; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid #cdd6d2"><span>シャンプー</span><span style="color: #5a6864">あと 18 日</span></div>
+      <div style="min-height: 52px; box-sizing: border-box; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px"><span>米 <span style="margin-left: 6px; padding: 1px 7px; background: #dcefe9; border-radius: 4px; color: #0a5a4a; font-size: 12px">推定</span></span><span style="color: #5a6864">あと 26 日</span></div>
+    </div>
+  </div>
+
+  <div style="padding: 0 16px 12px"><button style="width: 100%; min-height: 52px; background: #1b2623; border: 0; border-radius: 6px; color: #ffffff; font: inherit; font-size: 16px; font-weight: 700">レシートを撮影</button></div>
+
+  <nav aria-label="メイン" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #ffffff; border-top: 1px solid #cdd6d2">
+    <a href="Main.dc.html" style="min-height: 56px; display: flex; align-items: center; justify-content: center; color: #0a6b58; font-weight: 700; font-size: 14px; text-decoration: none">リスト</a>
+    <a href="Detail.dc.html" style="min-height: 56px; display: flex; align-items: center; justify-content: center; color: #5a6864; font-size: 14px; text-decoration: none">商品</a>
+    <a href="Stores.dc.html" style="min-height: 56px; display: flex; align-items: center; justify-content: center; color: #5a6864; font-size: 14px; text-decoration: none">店舗</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
