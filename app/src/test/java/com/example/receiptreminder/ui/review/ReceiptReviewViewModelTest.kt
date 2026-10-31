@@ -29,10 +29,15 @@ class ReceiptReviewViewModelTest {
     private class StubScanner(var result: Result<ReceiptCandidate>) : ReceiptScanner {
         var calls = 0
         var gate: CompletableDeferred<Unit>? = null
-        override suspend fun scanReceipt(): Result<ReceiptCandidate> {
+        val deleted = mutableListOf<String>()
+        override suspend fun scanReceipt(imageUris: List<String>): Result<ReceiptCandidate> {
             calls++
             gate?.await()
             return result
+        }
+
+        override fun deleteImages(imageUris: List<String>) {
+            deleted += imageUris
         }
     }
 
@@ -83,11 +88,89 @@ class ReceiptReviewViewModelTest {
 
     private fun TestScope.vm(scanner: StubScanner, service: StubService): ReceiptReviewViewModel {
         val vm = ReceiptReviewViewModel(scanner, service)
+        vm.onImagesPicked(listOf("content://picked/1"))
         return vm
     }
 
     @Test
-    fun scanStartsOnOpenAndShowsScanningThenEditing() = runTest {
+    fun opensOnSourceChoiceWithoutScanning() = runTest {
+        val scanner = StubScanner(Result.success(candidate()))
+        val vm = ReceiptReviewViewModel(scanner, StubService())
+        advanceUntilIdle()
+        assertEquals(ReviewPhase.ChooseSource, vm.uiState.value.phase)
+        assertEquals(0, scanner.calls)
+
+        vm.onImagesPicked(emptyList())
+        advanceUntilIdle()
+        assertEquals(ReviewPhase.ChooseSource, vm.uiState.value.phase)
+        assertEquals(0, scanner.calls)
+    }
+
+    @Test
+    fun capturedImagesAreDeletedAfterSave() = runTest {
+        val scanner = StubScanner(Result.success(candidate()))
+        val vm = ReceiptReviewViewModel(scanner, StubService())
+        vm.onImagesCaptured(listOf("file://scan/1", "file://scan/2"))
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.hasCapturedImages)
+        assertTrue(scanner.deleted.isEmpty())
+
+        vm.save()
+        advanceUntilIdle()
+        assertEquals(listOf("file://scan/1", "file://scan/2"), scanner.deleted)
+    }
+
+    @Test
+    fun capturedImagesAreKeptWhenSaveFailsThenDeletedOnCancel() = runTest {
+        val scanner = StubScanner(Result.success(candidate()))
+        val service = StubService().apply { saveResult = Result.failure(RuntimeException("x")) }
+        val vm = ReceiptReviewViewModel(scanner, service)
+        vm.onImagesCaptured(listOf("file://scan/1"))
+        advanceUntilIdle()
+        vm.save()
+        advanceUntilIdle()
+        assertTrue(scanner.deleted.isEmpty())
+
+        vm.cancel()
+        advanceUntilIdle()
+        assertEquals(listOf("file://scan/1"), scanner.deleted)
+    }
+
+    @Test
+    fun pickedImagesAreNeverDeleted() = runTest {
+        val scanner = StubScanner(Result.success(candidate()))
+        val vm = vm(scanner, StubService())
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.hasCapturedImages)
+
+        vm.save()
+        advanceUntilIdle()
+        assertEquals(ReviewResult.Saved, vm.uiState.value.finished)
+        assertTrue(scanner.deleted.isEmpty())
+    }
+
+    @Test
+    fun choosingAgainDeletesCapturedImagesAndReturnsToSourceChoice() = runTest {
+        val scanner = StubScanner(Result.failure(RuntimeException("x")))
+        val vm = ReceiptReviewViewModel(scanner, StubService())
+        vm.onImagesCaptured(listOf("file://scan/1"))
+        advanceUntilIdle()
+        assertEquals(ReviewPhase.ScanFailed, vm.uiState.value.phase)
+
+        vm.chooseSourceAgain()
+        assertEquals(ReviewPhase.ChooseSource, vm.uiState.value.phase)
+        assertEquals(listOf("file://scan/1"), scanner.deleted)
+    }
+
+    @Test
+    fun captureUnavailableOffersFailureChoices() = runTest {
+        val vm = ReceiptReviewViewModel(StubScanner(Result.success(candidate())), StubService())
+        vm.onCaptureUnavailable()
+        assertEquals(ReviewPhase.ScanFailed, vm.uiState.value.phase)
+    }
+
+    @Test
+    fun scanStartsAfterImagesAreChosenAndShowsScanningThenEditing() = runTest {
         val scanner = StubScanner(Result.success(candidate())).apply { gate = CompletableDeferred() }
         val vm = vm(scanner, StubService())
         advanceUntilIdle()
@@ -113,7 +196,8 @@ class ReceiptReviewViewModelTest {
         assertEquals(ReviewPhase.ScanFailed, vm.uiState.value.phase)
 
         scanner.result = Result.success(candidate())
-        vm.scan()
+        vm.chooseSourceAgain()
+        vm.onImagesPicked(listOf("content://picked/2"))
         advanceUntilIdle()
         assertEquals(2, scanner.calls)
         assertEquals(ReviewPhase.Editing, vm.uiState.value.phase)

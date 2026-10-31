@@ -6,8 +6,11 @@ import com.example.receiptreminder.domain.model.ReceiptCandidate
  * レシートスキャン（撮影・OCR・解析）インターフェース
  */
 interface ReceiptScanner {
-    /** レシートをスキャンして解析候補を返す */
-    suspend fun scanReceipt(): Result<ReceiptCandidate>
+    /** 撮影または選択した画像(複数ページ可)を読み取り、解析候補を返す */
+    suspend fun scanReceipt(imageUris: List<String>): Result<ReceiptCandidate>
+
+    /** 撮影で作られた画像を削除する(R-6)。利用者が選択した元の画像には使わない */
+    fun deleteImages(imageUris: List<String>)
 }
 
 /**

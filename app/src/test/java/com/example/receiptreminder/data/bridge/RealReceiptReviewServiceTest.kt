@@ -276,8 +276,42 @@ class RealReceiptReviewServiceTest {
     @Test
     fun `RealReceiptScanner returns failure when no image or lines provided`() = runTest {
         val emptyScanner = RealReceiptScanner()
-        val result = emptyScanner.scanReceipt()
+        val result = emptyScanner.scanReceipt(emptyList())
         assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `RealReceiptScanner joins pages and fails when no items are read`() = runTest {
+        fakeOcrScanner.textMap["page1"] = listOf("スキャナーテスト店", "2026/10/25", "シャンプー 450")
+        fakeOcrScanner.textMap["page2"] = listOf("牛乳 220", "合計 670")
+        fakeOcrScanner.textMap["unreadable"] = listOf("読めない文字")
+
+        val candidate = scanner.scanReceipt(listOf("page1", "page2")).getOrThrow()
+        assertEquals(2, candidate.items.size)
+        assertEquals(670, candidate.totalAmount)
+
+        assertTrue(scanner.scanReceipt(listOf("unreadable")).isFailure)
+    }
+
+    @Test
+    fun `selected images are not deleted when the receipt is saved or discarded`() = runTest {
+        val pickedUri = "content://media/picked/1"
+        fakeOcrScanner.textMap[pickedUri] = listOf("スキャナーテスト店", "2026/10/25", "シャンプー 450", "合計 450")
+
+        val candidate = scanner.scanReceipt(listOf(pickedUri)).getOrThrow()
+        assertNull(reviewService.getPendingImageUri())
+        reviewService.saveReceipt(candidate)
+        assertTrue(fakeOcrScanner.deletedImageUris.isEmpty())
+
+        scanner.scanReceipt(listOf(pickedUri)).getOrThrow()
+        reviewService.discardReceipt()
+        assertTrue(fakeOcrScanner.deletedImageUris.isEmpty())
+    }
+
+    @Test
+    fun `deleteImages removes every captured page`() {
+        scanner.deleteImages(listOf("file:///scan/1.jpg", "file:///scan/2.jpg"))
+        assertEquals(listOf("file:///scan/1.jpg", "file:///scan/2.jpg"), fakeOcrScanner.deletedImageUris)
     }
 }
 

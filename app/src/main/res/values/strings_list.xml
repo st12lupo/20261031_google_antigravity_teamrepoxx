@@ -1,7 +1,7 @@
 <resources>
     <string name="list_title">買い物リスト</string>
     <string name="list_add_manual">手動で追加</string>
-    <string name="list_scan_receipt">レシートを撮影</string>
+    <string name="list_scan_receipt">レシートを取り込む</string>
     <string name="list_section_urgent">なくなりそう %1$d 点</string>
     <string name="list_section_safe">まだ大丈夫</string>
     <string name="list_estimated">推定</string>
@@ -12,7 +12,7 @@
     <string name="list_remaining_today">今日なくなりそう</string>
     <string name="list_remaining_days">あと %1$d 日</string>
     <string name="list_empty_title">買い物リストは空です</string>
-    <string name="list_empty_body">レシートを撮影するか、手動で購入を追加すると、なくなりそうな時期を予測します。</string>
+    <string name="list_empty_body">レシートを取り込むか、手動で購入を追加すると、なくなりそうな時期を予測します。</string>
     <string name="list_loading">読み込み中</string>
     <string name="list_error_title">買い物リストを読み込めませんでした</string>
     <string name="list_error_retry">再読み込み</string>

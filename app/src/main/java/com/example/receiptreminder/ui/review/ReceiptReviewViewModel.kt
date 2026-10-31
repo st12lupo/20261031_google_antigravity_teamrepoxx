@@ -19,7 +19,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
 
-enum class ReviewPhase { Scanning, ScanFailed, Editing }
+enum class ReviewPhase { ChooseSource, Scanning, ScanFailed, Editing }
 
 enum class ReviewResult { Saved, Cancelled }
 
@@ -66,8 +66,10 @@ data class FormValidation(
 }
 
 data class ReceiptReviewUiState(
-    val phase: ReviewPhase = ReviewPhase.Scanning,
+    val phase: ReviewPhase = ReviewPhase.ChooseSource,
     val form: ReceiptForm = ReceiptForm(),
+    /** 撮影で作られた画像があり、保存時に削除するとき true */
+    val hasCapturedImages: Boolean = false,
     val isDuplicate: Boolean = false,
     /** 保存を一度試みたあとに true。以降は入力エラーを表示する */
     val showErrors: Boolean = false,
@@ -137,7 +139,8 @@ internal fun ReceiptForm.validate(): FormValidation {
 
 /**
  * レシート確認画面の ViewModel。
- * 画面を開いたら読み取りを始め、確認・修正・保存・取り消しを扱う。
+ * 画像の取得元の選択、読み取り、確認・修正・保存・取り消しを扱う。
+ * 撮影で作られた画像だけを削除し、利用者が選択した元の画像は削除しない。
  */
 class ReceiptReviewViewModel(
     private val scanner: ReceiptScanner,
@@ -150,19 +153,43 @@ class ReceiptReviewViewModel(
     private var scanJob: Job? = null
     private var duplicateJob: Job? = null
     private var newItemCounter = 0
+    private var capturedImageUris: List<String> = emptyList()
 
-    init {
-        scan()
+    /** 撮影で得た画像を読み取る */
+    fun onImagesCaptured(imageUris: List<String>) = recognize(imageUris, captured = true)
+
+    /** 利用者が選択した保存済みの画像を読み取る */
+    fun onImagesPicked(imageUris: List<String>) = recognize(imageUris, captured = false)
+
+    /** カメラを起動できなかったとき、読み取り失敗と同じ選択肢を出す */
+    fun onCaptureUnavailable() {
+        _uiState.value = ReceiptReviewUiState(phase = ReviewPhase.ScanFailed)
     }
 
-    /** 読み取りを(再)開始する。再撮影にも使う */
-    fun scan() {
+    /** 取得元の選択に戻る。再撮影と画像の選び直しに使う */
+    fun chooseSourceAgain() {
         scanJob?.cancel()
         duplicateJob?.cancel()
+        deleteCapturedImages()
+        _uiState.value = ReceiptReviewUiState()
+    }
+
+    private fun deleteCapturedImages() {
+        val uris = capturedImageUris
+        capturedImageUris = emptyList()
+        if (uris.isNotEmpty()) scanner.deleteImages(uris)
+    }
+
+    private fun recognize(imageUris: List<String>, captured: Boolean) {
+        if (imageUris.isEmpty()) return
+        scanJob?.cancel()
+        duplicateJob?.cancel()
+        deleteCapturedImages()
+        if (captured) capturedImageUris = imageUris
         _uiState.value = ReceiptReviewUiState(phase = ReviewPhase.Scanning)
         scanJob = viewModelScope.launch {
             val result = try {
-                scanner.scanReceipt()
+                scanner.scanReceipt(imageUris)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -179,6 +206,7 @@ class ReceiptReviewViewModel(
     fun startManualInput() {
         scanJob?.cancel()
         duplicateJob?.cancel()
+        deleteCapturedImages()
         _uiState.value = ReceiptReviewUiState(
             phase = ReviewPhase.Editing,
             form = ReceiptForm(receiptId = "manual")
@@ -188,6 +216,7 @@ class ReceiptReviewViewModel(
     private fun showCandidate(c: ReceiptCandidate) {
         _uiState.value = ReceiptReviewUiState(
             phase = ReviewPhase.Editing,
+            hasCapturedImages = capturedImageUris.isNotEmpty(),
             form = ReceiptForm(
                 receiptId = c.id,
                 storeName = c.storeName,
@@ -302,6 +331,7 @@ class ReceiptReviewViewModel(
             } catch (e: Exception) {
                 Result.failure(e)
             }
+            if (result.isSuccess) deleteCapturedImages()
             _uiState.update {
                 if (result.isSuccess) it.copy(isSaving = false, finished = ReviewResult.Saved)
                 else it.copy(isSaving = false, saveFailed = true)
@@ -314,6 +344,7 @@ class ReceiptReviewViewModel(
         if (_uiState.value.isSaving || _uiState.value.finished != null) return
         scanJob?.cancel()
         duplicateJob?.cancel()
+        deleteCapturedImages()
         viewModelScope.launch {
             try {
                 service.discardReceipt()

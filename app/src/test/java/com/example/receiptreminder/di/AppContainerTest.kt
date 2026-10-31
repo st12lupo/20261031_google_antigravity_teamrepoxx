@@ -31,7 +31,7 @@ class AppContainerTest {
         assertEquals(5, items.size)
 
         // スキャン機能の動作確認
-        val scanResult = appContainer.receiptScanner.scanReceipt()
+        val scanResult = appContainer.receiptScanner.scanReceipt(listOf("content://receipt/1"))
         assertTrue(scanResult.isSuccess)
         assertEquals("みどりマート 中央店", scanResult.getOrNull()?.storeName)
 
