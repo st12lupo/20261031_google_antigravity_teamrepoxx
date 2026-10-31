@@ -7,7 +7,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
  * 仮実装から実装への置き換えは T-16 で行う
  */
 object AppContainerHolder {
-    val container: AppContainer by lazy { DefaultAppContainer() }
+    var container: AppContainer = DefaultAppContainer()
 }
 
 /** 画面の ViewModel へ依存を渡すための CompositionLocal */
