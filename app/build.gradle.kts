@@ -38,6 +38,31 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("main") {
+            java.srcDirs(
+                "src/main/java",
+                "../domain",
+                "../prediction",
+                "../data",
+                "../receipt/parser",
+                "../receipt/normalize",
+                "../receipt/scan",
+                "../geofence"
+            )
+        }
+        getByName("test") {
+            java.srcDirs(
+                "src/test/java",
+                "../prediction",
+                "../data",
+                "../receipt/parser",
+                "../receipt/normalize",
+                "../receipt/scan",
+                "../geofence"
+            )
+        }
+    }
 }
 
 room {
