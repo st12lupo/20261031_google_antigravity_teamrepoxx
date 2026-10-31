@@ -62,6 +62,7 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
         <li>複数端末での同期、家族との共有、ログイン</li>
         <li>機種変更時のデータ引き継ぎ</li>
         <li>店舗ごとの通知商品の絞り込み</li>
+        <li>重複して登録した商品の統合(別名の学習で重複を防ぐ)</li>
         <li>Google Play services を搭載していない端末</li>
       </ul>
     </div>
@@ -76,6 +77,8 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
       <div class="req"><b>R-4</b><span>保存前に必ず確認画面を表示し、すべての項目を修正できる</span></div>
       <div class="req"><b>R-5</b><span>店名、日付、合計金額が一致するレシートは保存前に警告する。そのまま保存もできる</span></div>
       <div class="req"><b>R-6</b><span>保存後にレシート画像を削除し、読み取ったデータだけを残す</span></div>
+      <div class="req"><b>R-7</b><span>長いレシートは複数ページで撮影し、1 枚のレシートとして読み取る</span></div>
+      <div class="req"><b>R-8</b><span>読み取りに失敗したら、再撮影と手動入力を選べる</span></div>
     </div></div>
     <div class="group"><h3>商品の管理</h3><div class="reqs">
       <div class="req"><b>P-1</b><span>全半角やカナの違い、記号、容量表記を吸収して、同じ商品にまとめる</span></div>
@@ -86,15 +89,16 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     </div></div>
     <div class="group"><h3>購入の記録</h3><div class="reqs">
       <div class="req"><b>B-1</b><span>レシートがない購入を、商品、日付、数量を指定して手動で追加できる</span></div>
-      <div class="req"><b>B-2</b><span>買い物リストで「購入済み」にできる</span></div>
+      <div class="req"><b>B-2</b><span>買い物リストで「購入済み」にできる。数量は 1 個で記録する</span></div>
+      <div class="req"><b>B-4</b><span>保存後の購入を商品詳細の履歴から修正、削除できる。予測にはすぐ反映する</span></div>
       <div class="req"><b>B-3</b><span>「購入済み」または手動追加から 3 日以内に同じ商品をレシートで取り込んだら 1 件にまとめ、レシートの日付と数量を優先する</span></div>
     </div></div>
     <div class="group"><h3>消費予測</h3><div class="reqs">
-      <div class="req"><b>F-1</b><span>購入 2 回以上の商品は、1 個あたりの購入間隔の中央値を周期とする</span></div>
+      <div class="req"><b>F-1</b><span>購入 2 回以上の商品は、「次の購入までの日数 ÷ 前回の購入数量」の中央値を周期とする</span></div>
       <div class="req"><b>F-2</b><span>切れる日は、直近の購入日に「周期 × 購入数量」を足して求める</span></div>
       <div class="req"><b>F-3</b><span>購入 1 回の商品は、カテゴリ別の既定周期で予測し、「推定」と表示する</span></div>
       <div class="req"><b>F-4</b><span>周期の 2 割(最短 2 日、最長 7 日)以内に入った商品と、切れる日を過ぎた商品を「なくなりそう」と判定する</span></div>
-      <div class="req"><b>F-5</b><span>「まだある」で切れる日を後ろにずらし、周期の補正に反映する</span></div>
+      <div class="req"><b>F-5</b><span>「まだある」で切れる日を周期の 2 割(最短 2 日、最長 7 日)後ろにずらす。周期は次に購入したときの実際の間隔で補正する</span></div>
       <div class="req"><b>F-6</b><span>「もう買わない」で予測対象から外す。次にレシートで購入すると自動で戻す</span></div>
     </div></div>
     <div class="group"><h3>買い物リスト</h3><div class="reqs">
@@ -152,7 +156,7 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   <section class="stack">
     <h2>開発の進め方</h2>
     <ul>
-      <li>ソース管理: <a href="https://github.com/st12lupo/20261031_google_antigravity_teamrepoxx">st12lupo/20261031_google_antigravity_teamrepoxx</a></li>
+      <li>ソース管理: <a href="https://github.com/st12lupo/20261031_google_antigravity_teamrepoxx">st12lupo/20261031_google_antigravity_teamrepoxx</a>(非公開にする)</li>
       <li>ブランチ: 機能ごとにブランチを切り、PR のレビュー後に main へマージする</li>
       <li>分担: 実装は Claude、Android Studio での確認とレビューはチームが行う</li>
       <li>署名: 配布用 APK はチーム共通の鍵で署名し、鍵はリポジトリの外で管理する</li>
@@ -163,7 +167,6 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   <section class="stack open">
     <h2>未確定</h2>
     <ul>
-      <li>GitHub リポジトリの公開設定</li>
       <li>画面のモックアップ</li>
       <li>商品辞書と既定周期の一覧</li>
       <li>段階ごとのテスト項目</li>
