@@ -40,27 +40,22 @@ android {
     }
     sourceSets {
         getByName("main") {
-            java.srcDirs(
-                "src/main/java",
-                "../domain",
-                "../prediction",
-                "../data",
-                "../receipt/parser",
-                "../receipt/normalize",
-                "../receipt/scan",
-                "../geofence"
-            )
+            kotlin.directories.add("../domain")
+            kotlin.directories.add("../prediction")
+            kotlin.directories.add("../receipt")
+            kotlin.directories.add("../data")
+            kotlin.directories.add("../geofence")
         }
         getByName("test") {
-            java.srcDirs(
-                "src/test/java",
-                "../prediction",
-                "../data",
-                "../receipt/parser",
-                "../receipt/normalize",
-                "../receipt/scan",
-                "../geofence"
-            )
+            kotlin.directories.add("../prediction")
+            kotlin.directories.add("../receipt")
+            kotlin.directories.add("../data")
+            kotlin.directories.add("../geofence")
+        }
+    }
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        if (name == "compileDebugKotlin") {
+            exclude("**/*Test.kt")
         }
     }
 }
