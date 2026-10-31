@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
+        android:name=".ReceiptReminderApplication"
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:icon="@android:drawable/sym_def_app_icon"
@@ -29,6 +30,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- ジオフェンス進入イベント受信用 Receiver -->
+        <receiver
+            android:name="geofence.GeofenceBroadcastReceiver"
+            android:exported="false" />
+
+        <!-- 端末再起動後のジオフェンス再登録用 Receiver (G-3, N-6) -->
+        <receiver
+            android:name="geofence.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
