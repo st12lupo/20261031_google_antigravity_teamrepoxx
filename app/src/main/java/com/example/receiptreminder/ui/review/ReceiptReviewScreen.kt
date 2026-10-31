@@ -456,14 +456,16 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                         color = MaterialTheme.colorScheme.error
                     )
                 }
-                Text(
-                    text = stringResource(
-                        if (state.hasCapturedImages) R.string.review_image_deleted_notice
-                        else R.string.review_image_kept_notice
-                    ),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (state.hasCapturedImages || state.hasPickedImages) {
+                    Text(
+                        text = stringResource(
+                            if (state.hasCapturedImages) R.string.review_image_deleted_notice
+                            else R.string.review_image_kept_notice
+                        ),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)

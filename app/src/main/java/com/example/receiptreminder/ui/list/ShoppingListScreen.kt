@@ -471,7 +471,7 @@ private fun SummaryBannerRow(
                 Spacer(Modifier.width(10.dp))
                 Column {
                     Text(
-                        text = stringResource(R.string.list_section_urgent, urgentCount),
+                        text = stringResource(R.string.list_stat_urgent),
                         color = warningColor(),
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,

@@ -70,6 +70,8 @@ data class ReceiptReviewUiState(
     val form: ReceiptForm = ReceiptForm(),
     /** 撮影で作られた画像があり、保存時に削除するとき true */
     val hasCapturedImages: Boolean = false,
+    /** 利用者が選択した画像を読み取った結果を表示しているとき true */
+    val hasPickedImages: Boolean = false,
     val isDuplicate: Boolean = false,
     /** 保存を一度試みたあとに true。以降は入力エラーを表示する */
     val showErrors: Boolean = false,
@@ -217,6 +219,7 @@ class ReceiptReviewViewModel(
         _uiState.value = ReceiptReviewUiState(
             phase = ReviewPhase.Editing,
             hasCapturedImages = capturedImageUris.isNotEmpty(),
+            hasPickedImages = capturedImageUris.isEmpty(),
             form = ReceiptForm(
                 receiptId = c.id,
                 storeName = c.storeName,
