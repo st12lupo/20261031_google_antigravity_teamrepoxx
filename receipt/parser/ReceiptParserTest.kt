@@ -133,6 +133,119 @@ class ReceiptParserTest {
     }
 
     @Test
+    fun `parse receipt with spaced total and electronic money payment lines`() {
+        val ocrLines = listOf(
+            "架空Pマート",
+            "架空プラザ店",
+            "架空県架空市架空町",
+            "X-X-X",
+            "電話:000-XXX-XXXX レジ#1",
+            "2026年01月12日(日) 11:30 責222",
+            "領収書",
+            "架空コーラゼロ500P ¥155",
+            "ﾋﾞｯｸﾞｱﾒﾘｶﾝﾄﾞｯｸﾞ ¥105",
+            "値引額 -11",
+            "ツナ＆コーンサラダ ¥199",
+            "架空焙煎ｺﾞﾏﾄﾞﾚｯｼﾝｸﾞ ¥164",
+            "(商品代金 ¥623",
+            "(値引合計 -11",
+            "合 計 ¥612",
+            "kakuupay支払 ¥612",
+            "お買上明細は上記のとおりです。",
+            "商品価格には消費税等を含みます。",
+            "kakuupay番号 ************1840",
+            "kakuupay残高 ¥4,305",
+            "今回ﾎﾟｲﾝﾄ 5P",
+            "ﾎﾟｲﾝﾄ残高 51P",
+            "伝票番号 111-111-222-2222",
+            "お得なおしらせ！",
+            "新規登録でもれなく",
+            "詳しくはレジカウンターまで"
+        )
+
+        val result = parser.parse(ocrLines)
+
+        assertEquals("架空Pマート", result.storeName)
+        assertEquals(LocalDate.of(2026, 1, 12).toEpochDay(), result.purchasedOnEpochDay)
+        assertEquals(612, result.totalAmount)
+        assertEquals(
+            listOf(
+                "架空コーラゼロ500P" to 155,
+                "ﾋﾞｯｸﾞｱﾒﾘｶﾝﾄﾞｯｸﾞ" to 94,
+                "ツナ＆コーンサラダ" to 199,
+                "架空焙煎ｺﾞﾏﾄﾞﾚｯｼﾝｸﾞ" to 164
+            ),
+            result.items.map { it.rawName to it.price }
+        )
+    }
+
+    @Test
+    fun `yen mark misread by OCR as backslash or Y is treated as yen`() {
+        val ocrLines = listOf(
+            "架空Pマート",
+            "架空プラザ店",
+            "電話: 000-XXX-XXXX レジ#1",
+            "2026年01月12日 (日) 11:30責222",
+            "領収書",
+            "架空コーラゼロ500P  \\155",
+            "ビッグアメリカンドッグ  Y105",
+            "値引額  -11",
+            "ツナ&コーンサラダ  ¥199",
+            "架空培煎ゴマドレッシング  ¥164",
+            "(商品代金  ¥623)",
+            "(値引合計  -11)",
+            "合 計  Y612",
+            "kakuupay支払  ¥612",
+            "お買上明細は上記のとおりです。",
+            "kakuupay番号  ***:  c*****1840",
+            "kakuupay残高  ¥4, 305",
+            "今回ポイント  5P",
+            "ポイント残高  51P",
+            "伝票番号  111-111-222-2222"
+        )
+
+        val result = parser.parse(ocrLines)
+
+        assertEquals(612, result.totalAmount)
+        assertEquals(
+            listOf(
+                "架空コーラゼロ500P" to 155,
+                "ビッグアメリカンドッグ" to 94,
+                "ツナ&コーンサラダ" to 199,
+                "架空培煎ゴマドレッシング" to 164
+            ),
+            result.items.map { it.rawName to it.price }
+        )
+    }
+
+    @Test
+    fun `Y inside a product name is not treated as yen`() {
+        val result = parser.parse(listOf("架空ストア", "2026/01/12", "BABY100 ¥300", "TOY 50", "合計 ¥350"))
+
+        assertEquals(
+            listOf("BABY100" to 300, "TOY" to 50),
+            result.items.map { it.rawName to it.price }
+        )
+    }
+
+    @Test
+    fun `discount total and summary lines with closing parenthesis do not change items`() {
+        val ocrLines = listOf(
+            "架空ストア",
+            "2026/01/12",
+            "ｼｬﾝﾌﾟｰ 598",
+            "(商品代金 ¥598)",
+            "(値引合計 -100)",
+            "合　計 ¥498"
+        )
+
+        val result = parser.parse(ocrLines)
+
+        assertEquals(listOf("ｼｬﾝﾌﾟｰ" to 598), result.items.map { it.rawName to it.price })
+        assertEquals(498, result.totalAmount)
+    }
+
+    @Test
     fun `parse various date formats including reiwa and short year`() {
         val reiwaLines = listOf("店名A", "令和8年10月31日", "商品A 100", "合計 100")
         val shortLines = listOf("店名B", "26-10-31", "商品B 200", "合計 200")
