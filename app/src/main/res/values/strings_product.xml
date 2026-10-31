@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 商品一覧 -->
+    <string name="product_list_title">商品</string>
+    <string name="product_list_empty_title">まだ商品がありません</string>
+    <string name="product_list_empty_body">レシートを撮影すると、買った商品がここに並びます。</string>
+    <string name="product_list_error">商品を読み込めませんでした</string>
+    <string name="product_retry">再読み込み</string>
+    <string name="product_loading">読み込み中</string>
+    <string name="product_badge_estimated">推定</string>
+    <string name="product_badge_untracked">予測対象外</string>
+    <string name="product_list_item_untracked">予測の対象外</string>
+
+    <!-- 商品詳細 -->
+    <string name="product_back">戻る</string>
+    <string name="product_not_found">この商品は見つかりませんでした</string>
+    <string name="product_detail_error">商品を読み込めませんでした</string>
+    <string name="product_status_overdue">切れています・%1$d 日過ぎています</string>
+    <string name="product_status_running_out">なくなりそう・あと %1$d 日</string>
+    <string name="product_status_sufficient">あと %1$d 日</string>
+    <string name="product_status_untracked">予測の対象外です</string>
+    <string name="product_row_out_date">切れる日</string>
+    <string name="product_row_cycle">周期</string>
+    <string name="product_row_became_low">なくなりそうになった日</string>
+    <string name="product_row_none">—</string>
+    <string name="product_cycle_value">%1$s 日 / 個</string>
+    <string name="product_date_short">%1$d 月 %2$d 日</string>
+    <string name="product_date_full">%1$d 年 %2$d 月 %3$d 日</string>
+    <string name="product_quantity_value">%1$d 個</string>
+    <string name="product_action_purchased">購入済み</string>
+    <string name="product_action_snooze">まだある</string>
+    <string name="product_action_stop">もう買わない</string>
+    <string name="product_action_stop_hint">次にレシートで購入すると自動で戻ります</string>
+    <string name="product_history_title">購入履歴</string>
+    <string name="product_history_empty">購入履歴はまだありません</string>
+    <string name="product_source_receipt">レシート</string>
+    <string name="product_source_receipt_store">レシート・%1$s</string>
+    <string name="product_source_manual">手動で追加</string>
+    <string name="product_add_purchase">購入を追加</string>
+    <string name="product_settings_title">予測の設定</string>
+    <string name="product_tracked_toggle">予測の対象にする</string>
+    <string name="product_edit_purchase">修正</string>
+    <string name="product_delete_purchase">削除</string>
+
+    <!-- 購入の入力 -->
+    <string name="product_editor_title_add">購入を追加</string>
+    <string name="product_editor_title_edit">購入を修正</string>
+    <string name="product_editor_date">日付(例 2026-10-31)</string>
+    <string name="product_editor_quantity">数量</string>
+    <string name="product_editor_error_date_invalid">日付を「2026-10-31」の形式で入力してください</string>
+    <string name="product_editor_error_date_future">未来の日付は入力できません</string>
+    <string name="product_editor_error_quantity">数量は 1 から 99 の整数で入力してください</string>
+    <string name="product_editor_save">保存</string>
+    <string name="product_editor_cancel">キャンセル</string>
+    <string name="product_delete_title">この購入を削除しますか</string>
+    <string name="product_delete_body">%1$s・%2$s の購入を削除します。予測にすぐ反映されます。</string>
+    <string name="product_delete_confirm">削除する</string>
+
+    <!-- 操作の結果 -->
+    <string name="product_msg_purchased">購入済みにしました</string>
+    <string name="product_msg_snoozed">切れる日を後ろにずらしました</string>
+    <string name="product_msg_stopped">予測の対象から外しました</string>
+    <string name="product_msg_tracked_on">予測の対象にしました</string>
+    <string name="product_msg_tracked_off">予測の対象から外しました</string>
+    <string name="product_msg_added">購入を追加しました</string>
+    <string name="product_msg_updated">購入を修正しました</string>
+    <string name="product_msg_deleted">購入を削除しました</string>
+    <string name="product_msg_failed">操作に失敗しました。もう一度お試しください</string>
+</resources>
