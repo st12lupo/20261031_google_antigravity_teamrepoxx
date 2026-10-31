@@ -2,6 +2,7 @@ package com.example.receiptreminder.ui.navigation
 
 sealed class Screen(val route: String, val title: String) {
     object ShoppingList : Screen("shopping_list", "リスト")
+    object ProductList : Screen("products", "商品")
     object ProductDetail : Screen("product_detail/{productId}", "商品詳細") {
         fun createRoute(productId: String = "sample-id") = "product_detail/$productId"
     }
@@ -12,6 +13,6 @@ sealed class Screen(val route: String, val title: String) {
 
 sealed class BottomNavItem(val screen: Screen, val iconName: String) {
     object ShoppingList : BottomNavItem(Screen.ShoppingList, "List")
-    object ProductList : BottomNavItem(Screen.ProductDetail, "Detail")
+    object ProductList : BottomNavItem(Screen.ProductList, "Products")
     object Stores : BottomNavItem(Screen.Stores, "Store")
 }
