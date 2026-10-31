@@ -31,14 +31,20 @@ data class Product(
     val cycleDays: Double = 30.0,
     val predictedOutDate: LocalDate = LocalDate.now().plusDays(30),
     val becameLowDate: LocalDate? = null,
-    val remainingDays: Int = 30
+    val remainingDays: Int = 30,
+    /**
+     * 予測側(F-4)の「なくなりそう」判定。null のときは旧来の「残り 7 日以内」で判定する(Fake 用)。
+     */
+    val isRunningOut: Boolean? = null,
+    /** 購入履歴があるか。false(履歴を全部削除した商品など)は予測の対象外として扱う */
+    val hasPurchaseHistory: Boolean = true
 ) {
     val status: StockStatus
         get() {
-            if (!isTracked) return StockStatus.NOT_TRACKED
+            if (!isTracked || !hasPurchaseHistory) return StockStatus.NOT_TRACKED
             return when {
                 remainingDays < 0 -> StockStatus.OUT_OF_STOCK_OR_OVERDUE
-                remainingDays <= 7 -> StockStatus.RUNNING_OUT
+                isRunningOut ?: (remainingDays <= 7) -> StockStatus.RUNNING_OUT
                 else -> StockStatus.SUFFICIENT
             }
         }

@@ -19,6 +19,7 @@
     <string name="product_status_running_out">なくなりそう・あと %1$d 日</string>
     <string name="product_status_sufficient">あと %1$d 日</string>
     <string name="product_status_untracked">予測の対象外です</string>
+    <string name="product_status_no_history">購入履歴がないため予測できません</string>
     <string name="product_row_out_date">切れる日</string>
     <string name="product_row_cycle">周期</string>
     <string name="product_row_became_low">なくなりそうになった日</string>

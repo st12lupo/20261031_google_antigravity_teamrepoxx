@@ -28,4 +28,10 @@ interface ReceiptReviewService {
 
     /** レシート取り込みの破棄 */
     suspend fun discardReceipt()
+
+    /**
+     * 確認画面で商品名を直したときに、予測の対象にするかの目安を返す(R-4, P-4)。
+     * 判断できない実装は null を返し、画面は現在の指定を変えない。
+     */
+    suspend fun suggestTracked(name: String): Boolean? = null
 }

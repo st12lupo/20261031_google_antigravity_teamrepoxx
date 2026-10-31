@@ -32,6 +32,10 @@ interface ProductDao {
     @Query("UPDATE products SET isTracked = :isTracked WHERE id = :id")
     suspend fun updateTracked(id: Long, isTracked: Boolean)
 
+    /** 予測対象と「もう買わない」の印を一度に変える */
+    @Query("UPDATE products SET isTracked = :isTracked, stoppedByUser = :stoppedByUser WHERE id = :id")
+    suspend fun updateTrackedAndStopped(id: Long, isTracked: Boolean, stoppedByUser: Boolean)
+
     @Query("UPDATE products SET snoozedUntilEpochDay = :snoozedUntilEpochDay WHERE id = :id")
     suspend fun updateSnooze(id: Long, snoozedUntilEpochDay: Long?)
 
@@ -43,4 +47,10 @@ interface ProductDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAlias(alias: ProductAliasEntity): Long
+
+    @Query("DELETE FROM product_aliases WHERE rawText = :rawText")
+    suspend fun deleteAlias(rawText: String)
+
+    @Query("DELETE FROM product_aliases")
+    suspend fun deleteAllAliases()
 }

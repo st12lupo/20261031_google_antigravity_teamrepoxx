@@ -4,11 +4,13 @@ import data.dao.ProductDao
 import data.dao.PurchaseDao
 import data.dao.ReceiptDao
 import data.dao.StoreDao
+import data.entity.ProductAliasEntity
 import data.entity.ProductEntity
 import data.entity.PurchaseEntity
 import data.entity.ReceiptEntity
 import data.entity.StoreEntity
 import domain.model.Product
+import domain.model.ProductAlias
 import domain.model.Purchase
 import domain.model.PurchaseSource
 import domain.model.Receipt
@@ -21,7 +23,10 @@ class DefaultReminderRepository(
     private val productDao: ProductDao,
     private val purchaseDao: PurchaseDao,
     private val receiptDao: ReceiptDao,
-    private val storeDao: StoreDao
+    private val storeDao: StoreDao,
+    private val todayProvider: () -> java.time.LocalDate = { java.time.LocalDate.now() },
+    /** レシートと購入の保存を 1 つのトランザクションにする(L-4)。本番は Room の withTransaction */
+    private val transactionRunner: TransactionRunner = TransactionRunner.None
 ) : ReminderRepository {
 
     // === 商品 ===
@@ -49,17 +54,52 @@ class DefaultReminderRepository(
     }
 
     override suspend fun setTracked(productId: Long, isTracked: Boolean) {
-        productDao.updateTracked(productId, isTracked)
+        if (isTracked) {
+            productDao.updateTrackedAndStopped(productId, isTracked = true, stoppedByUser = false)
+        } else {
+            productDao.updateTracked(productId, false)
+        }
+    }
+
+    override suspend fun stopTracking(productId: Long) {
+        productDao.updateTrackedAndStopped(productId, isTracked = false, stoppedByUser = true)
     }
 
     override suspend fun snoozeProduct(productId: Long, extraDays: Long) {
         val product = productDao.getProductById(productId) ?: return
-        val baseDay = product.snoozedUntilEpochDay ?: java.time.LocalDate.now().toEpochDay()
+        val today = todayProvider().toEpochDay()
+        val baseDay = maxOf(product.snoozedUntilEpochDay ?: today, today)
         productDao.updateSnooze(productId, baseDay + extraDays)
+    }
+
+    override suspend fun snoozeProductUntil(productId: Long, untilEpochDay: Long) {
+        productDao.getProductById(productId) ?: return
+        productDao.updateSnooze(productId, untilEpochDay)
     }
 
     override suspend fun deleteProduct(id: Long) {
         productDao.deleteProduct(id)
+    }
+
+    // === 商品の別名(P-2) ===
+
+    override suspend fun getAllAliases(): List<ProductAlias> {
+        return productDao.getAllAliases().map { it.toDomain() }
+    }
+
+    override suspend fun saveAlias(rawText: String, productId: Long) {
+        val existing = productDao.findAlias(rawText)
+        productDao.insertAlias(
+            ProductAliasEntity(id = existing?.id ?: 0, rawText = rawText, productId = productId)
+        )
+    }
+
+    override suspend fun deleteAlias(rawText: String) {
+        productDao.deleteAlias(rawText)
+    }
+
+    override suspend fun deleteAllAliases() {
+        productDao.deleteAllAliases()
     }
 
     // === 購入履歴 ===
@@ -86,6 +126,8 @@ class DefaultReminderRepository(
             price = price,
             source = source.name
         )
+        // 購入したらスヌーズ(まだある)を解除する。次の切れる日は購入日と周期で決まる
+        productDao.updateSnooze(productId, null)
         return purchaseDao.insertPurchase(entity)
     }
 
@@ -120,6 +162,15 @@ class DefaultReminderRepository(
         purchasedOnEpochDay: Long,
         totalAmount: Int,
         items: List<ReceiptItemData>
+    ): Long = transactionRunner.run {
+        saveReceiptAndPurchasesInternal(storeName, purchasedOnEpochDay, totalAmount, items)
+    }
+
+    private suspend fun saveReceiptAndPurchasesInternal(
+        storeName: String,
+        purchasedOnEpochDay: Long,
+        totalAmount: Int,
+        items: List<ReceiptItemData>
     ): Long {
         val receiptEntity = ReceiptEntity(
             storeName = storeName,
@@ -129,11 +180,25 @@ class DefaultReminderRepository(
         val receiptId = receiptDao.insertReceipt(receiptEntity)
 
         for (item in items) {
-            val product = getOrCreateProduct(item.normalizedName, item.category)
+            // 予測対象外の商品も購入履歴には残す(P-2, P-4)。新しい商品は確認画面の指定で作る
+            val existingProduct = productDao.findProductByName(item.normalizedName)
+            val product = if (existingProduct != null) {
+                existingProduct.toDomain()
+            } else {
+                val entity = ProductEntity(
+                    name = item.normalizedName,
+                    category = item.category,
+                    isTracked = item.isTracked
+                )
+                entity.copy(id = productDao.insertProduct(entity)).toDomain()
+            }
 
-            // F-6: 「もう買わない」で予測対象から外した商品をレシートで購入したら自動で戻す
-            if (!product.isTracked) {
-                productDao.updateTracked(product.id, true)
+            productDao.updateSnooze(product.id, null)
+
+            // F-6: 「もう買わない」で予測対象から外した商品をレシートで購入したら自動で戻す(印も消す)。
+            // 確認画面で予測対象を切り替えたときは、その指定を商品に反映し、印は消す(P-4)
+            if (product.isTracked != item.isTracked || product.stoppedByUser) {
+                productDao.updateTrackedAndStopped(product.id, item.isTracked, stoppedByUser = false)
             }
 
             // B-3: 「購入済み」または手動追加から 3 日以内に同じ商品をレシートで取り込んだら

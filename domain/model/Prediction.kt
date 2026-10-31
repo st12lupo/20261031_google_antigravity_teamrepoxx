@@ -16,5 +16,7 @@ data class ProductPrediction(
     val predictedOutOfStockOnEpochDay: Long,
     val remainingDays: Long,
     val isRunningOut: Boolean,
-    val status: PredictionStatus
+    val status: PredictionStatus,
+    /** 周期の 2 割(最短 2 日、最長 7 日)。なくなりそうの判定幅で、「まだある」でずらす日数 */
+    val bufferDays: Long = 2L
 )

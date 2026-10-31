@@ -22,7 +22,7 @@ import data.entity.StoreEntity
         PurchaseEntity::class,
         StoreEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -42,7 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "receipt_reminder.db"
-                ).build()
+                ).addMigrations(*AppMigrations.ALL).build()
                 INSTANCE = instance
                 instance
             }

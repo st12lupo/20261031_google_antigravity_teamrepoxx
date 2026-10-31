@@ -75,6 +75,8 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -725,6 +727,7 @@ private fun StoreCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val toggleDescription = stringResource(R.string.store_notify_toggle_description, store.name)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -751,7 +754,10 @@ private fun StoreCard(
                         enabled = enabled,
                         role = Role.Checkbox,
                         onValueChange = onToggle
-                    ),
+                    )
+                    .semantics {
+                        contentDescription = toggleDescription
+                    },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -808,11 +814,18 @@ private fun StoreCard(
                         }
                     }
                 }
-                Checkbox(
-                    checked = store.notifyEnabled,
-                    onCheckedChange = null,
-                    colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.store_notify_checkbox_label),
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Checkbox(
+                        checked = store.notifyEnabled,
+                        onCheckedChange = null,
+                        colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+                    )
+                }
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),

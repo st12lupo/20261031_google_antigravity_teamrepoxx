@@ -18,6 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import com.example.receiptreminder.data.bridge.CapturedImageTracker
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -47,6 +48,13 @@ class ReceiptReviewViewModelTest {
         var saveResult: Result<Unit> = Result.success(Unit)
         val saved = mutableListOf<ReceiptCandidate>()
         var discardCalls = 0
+        var suggestions = mapOf<String, Boolean>()
+        val suggestQueries = mutableListOf<String>()
+
+        override suspend fun suggestTracked(name: String): Boolean? {
+            suggestQueries += name
+            return suggestions[name]
+        }
 
         override suspend fun getPendingReceipt(): ReceiptCandidate? = null
         override suspend fun checkDuplicate(storeName: String, dateString: String, totalAmount: Int): Boolean {
@@ -418,5 +426,133 @@ class ReceiptReviewViewModelTest {
         assertEquals(ReviewResult.Cancelled, vm.uiState.value.finished)
         assertNotNull(vm.uiState.value)
         assertEquals(ReviewPhase.Scanning, vm.uiState.value.phase)
+    }
+
+    @Test
+    fun userCanToggleTrackedPerItemAndSaveKeepsIt() = runTest {
+        val service = StubService()
+        val vm = vm(StubScanner(Result.success(candidate())), service)
+        advanceUntilIdle()
+
+        // i2 は予測の対象外で読み込まれる。画面から対象に切り替えられる(R-4, P-4)
+        assertFalse(vm.uiState.value.form.items.first { it.id == "i2" }.isTracked)
+        vm.onItemTrackedChange("i2", true)
+        vm.onItemTrackedChange("i1", false)
+        assertTrue(vm.uiState.value.form.items.first { it.id == "i2" }.isTracked)
+        assertFalse(vm.uiState.value.form.items.first { it.id == "i1" }.isTracked)
+
+        vm.save()
+        advanceUntilIdle()
+        val saved = service.saved.single().items.associateBy { it.id }
+        assertTrue(saved.getValue("i2").isTracked)
+        assertFalse(saved.getValue("i1").isTracked)
+    }
+
+    @Test
+    fun renamingToDictionaryNameMakesItemTracked() = runTest {
+        val service = StubService().apply { suggestions = mapOf("牛乳" to true, "ヨガ" to false) }
+        val vm = vm(StubScanner(Result.success(candidate())), service)
+        advanceUntilIdle()
+
+        vm.onItemNameChange("i2", "牛乳")
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.form.items.first { it.id == "i2" }.isTracked)
+
+        vm.onItemNameChange("i2", "ヨガ")
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.form.items.first { it.id == "i2" }.isTracked)
+    }
+
+    @Test
+    fun renamingDoesNotOverrideAUserToggle() = runTest {
+        val service = StubService().apply { suggestions = mapOf("牛乳" to true) }
+        val vm = vm(StubScanner(Result.success(candidate())), service)
+        advanceUntilIdle()
+
+        vm.onItemTrackedChange("i2", false)
+        vm.onItemNameChange("i2", "牛乳")
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.form.items.first { it.id == "i2" }.isTracked)
+        assertTrue(service.suggestQueries.isEmpty())
+    }
+
+    @Test
+    fun staleSuggestionIsIgnoredAndUnknownSuggestionKeepsCurrentValue() = runTest {
+        val service = StubService().apply { suggestions = mapOf("牛乳" to true) }
+        val vm = vm(StubScanner(Result.success(candidate())), service)
+        advanceUntilIdle()
+
+        // 判断できない名前(null)は現在の指定を変えない
+        vm.onItemNameChange("i1", "どれでもない")
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.form.items.first { it.id == "i1" }.isTracked)
+
+        // 入力の途中で結果が返っても、最後に入力した名前の結果だけが反映される
+        vm.onItemNameChange("i2", "牛")
+        vm.onItemNameChange("i2", "牛乳")
+        advanceUntilIdle()
+        assertEquals(listOf("どれでもない", "牛乳"), service.suggestQueries)
+        assertTrue(vm.uiState.value.form.items.first { it.id == "i2" }.isTracked)
+    }
+
+    @Test
+    fun onCleared_deletesCapturedImagesStillOnDisk() = runTest {
+        val scanner = StubScanner(Result.success(candidate()))
+        val tracker = CapturedImageTracker()
+        val vm = ReceiptReviewViewModel(scanner, StubService(), tracker)
+        vm.onImagesCaptured(listOf("file:///cache/scan/1.jpg"))
+        advanceUntilIdle()
+        assertTrue(tracker.isInUse("/cache/scan/1.jpg".let { java.io.File(it).absolutePath }))
+
+        vm.onCleared() // CLEAR_TASK やプロセス終了で画面が破棄された
+        assertEquals(listOf("file:///cache/scan/1.jpg"), scanner.deleted)
+        assertFalse(tracker.isInUse(java.io.File("/cache/scan/1.jpg").absolutePath))
+    }
+
+    @Test
+    fun onCleared_whileScanning_deletesAndCancels() = runTest {
+        val scanner = StubScanner(Result.success(candidate())).apply { gate = CompletableDeferred() }
+        val vm = ReceiptReviewViewModel(scanner, StubService(), CapturedImageTracker())
+        vm.onImagesCaptured(listOf("file:///cache/scan/1.jpg"))
+        advanceUntilIdle()
+        assertEquals(ReviewPhase.Scanning, vm.uiState.value.phase)
+        vm.onCleared()
+        assertEquals(listOf("file:///cache/scan/1.jpg"), scanner.deleted)
+    }
+
+    @Test
+    fun onCleared_afterSave_doesNotDeleteAgain() = runTest {
+        val scanner = StubScanner(Result.success(candidate()))
+        val vm = ReceiptReviewViewModel(scanner, StubService(), CapturedImageTracker())
+        vm.onImagesCaptured(listOf("file:///cache/scan/1.jpg"))
+        advanceUntilIdle()
+        vm.save()
+        advanceUntilIdle()
+        assertEquals(1, scanner.deleted.size)
+        vm.onCleared()
+        assertEquals(1, scanner.deleted.size)
+    }
+
+    @Test
+    fun onCleared_doesNotDeleteImagesThePickerChose() = runTest {
+        val scanner = StubScanner(Result.success(candidate()))
+        val vm = ReceiptReviewViewModel(scanner, StubService(), CapturedImageTracker())
+        vm.onImagesPicked(listOf("content://picked/1"))
+        advanceUntilIdle()
+        vm.onCleared()
+        assertTrue(scanner.deleted.isEmpty())
+    }
+
+    @Test
+    fun recapture_deletesPreviousImagesBeforeTrackingNewOnes() = runTest {
+        val scanner = StubScanner(Result.success(candidate()))
+        val tracker = CapturedImageTracker()
+        val vm = ReceiptReviewViewModel(scanner, StubService(), tracker)
+        vm.onImagesCaptured(listOf("file:///cache/scan/1.jpg"))
+        vm.onImagesCaptured(listOf("file:///cache/scan/2.jpg"))
+        advanceUntilIdle()
+        assertEquals(listOf("file:///cache/scan/1.jpg"), scanner.deleted)
+        assertFalse(tracker.isInUse(java.io.File("/cache/scan/1.jpg").absolutePath))
+        assertTrue(tracker.isInUse(java.io.File("/cache/scan/2.jpg").absolutePath))
     }
 }

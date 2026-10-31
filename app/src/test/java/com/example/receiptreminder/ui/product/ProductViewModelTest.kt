@@ -182,12 +182,16 @@ class ProductViewModelTest {
     }
 
     @Test
-    fun addPurchase_validInput_callsAddManualPurchaseWithProductName() {
+    fun addPurchase_validInput_callsAddPurchaseForProductWithProductId() {
         var captured: Triple<String, LocalDate, Int>? = null
+        var byName = 0
         val recording = object : com.example.receiptreminder.domain.repository.ShoppingListRepository by shopping {
+            override suspend fun addPurchaseForProduct(
+                productId: String, purchasedOn: LocalDate, quantity: Int, price: Int?
+            ) { captured = Triple(productId, purchasedOn, quantity) }
             override suspend fun addManualPurchase(
                 productName: String, purchasedOn: LocalDate, quantity: Int, price: Int?, storeName: String?
-            ) { captured = Triple(productName, purchasedOn, quantity) }
+            ) { byName++ }
         }
         val vm = ProductDetailViewModel(soap.id, products, recording) { today }
         vm.startAddPurchase()
@@ -195,7 +199,8 @@ class ProductViewModelTest {
         vm.updateEditor(dateText = "2026/10/29", quantityText = "3")
         vm.saveEditor()
         assertNull(vm.uiState.value.editor)
-        assertEquals(Triple("テスト洗剤", LocalDate.of(2026, 10, 29), 3), captured)
+        assertEquals(Triple(soap.id, LocalDate.of(2026, 10, 29), 3), captured)
+        assertEquals(0, byName)
         assertEquals(ProductMessage.ADDED, vm.uiState.value.message)
     }
 

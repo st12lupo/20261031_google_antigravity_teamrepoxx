@@ -10,7 +10,7 @@ import java.time.LocalDate
 
 class RealStoreRepository(
     private val reminderRepository: ReminderRepository,
-    private val currentLocationProvider: suspend () -> Pair<Double, Double>? = { 35.6812 to 139.7671 },
+    private val currentLocationProvider: suspend () -> Pair<Double, Double>? = { null },
     private val trigger: DataUpdateTrigger = DataUpdateTrigger(),
     private val onClearAllData: (suspend () -> Unit)? = null
 ) : StoreRepository {

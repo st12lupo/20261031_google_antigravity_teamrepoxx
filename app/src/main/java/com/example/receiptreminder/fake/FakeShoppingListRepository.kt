@@ -106,6 +106,11 @@ class FakeShoppingListRepository(
         _itemsFlow.value = current
     }
 
+    override suspend fun addPurchaseForProduct(productId: String, purchasedOn: LocalDate, quantity: Int, price: Int?) {
+        val name = _itemsFlow.value.firstOrNull { it.product.id == productId }?.product?.name ?: return
+        addManualPurchase(name, purchasedOn, quantity, price, null)
+    }
+
     fun resetData(items: List<ShoppingItem> = emptyList()) {
         _itemsFlow.value = items
     }

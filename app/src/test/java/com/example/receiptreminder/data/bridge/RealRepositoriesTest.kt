@@ -43,7 +43,7 @@ class RealRepositoriesTest {
         purchaseDao = FakePurchaseDao()
         receiptDao = FakeReceiptDao()
         storeDao = FakeStoreDao()
-        reminderRepository = DefaultReminderRepository(productDao, purchaseDao, receiptDao, storeDao)
+        reminderRepository = DefaultReminderRepository(productDao, purchaseDao, receiptDao, storeDao, todayProvider)
     }
 
     // =========================================================================
@@ -65,14 +65,14 @@ class RealRepositoriesTest {
         val soap = reminderRepository.getOrCreateProduct("食器用洗剤", "日用品")
         val rice = reminderRepository.getOrCreateProduct("米", "定番食品")
 
-        // 牛乳: 10日前に購入 -> 残り 14 - 10 = 4日 (urgent: <= 7日)
+        // 牛乳: 12日前に購入 -> 残り 14 - 12 = 2日 (urgent: 周期14日の2割=3日以内, F-4)
         reminderRepository.recordManualPurchase(
             productId = milk.id,
-            purchasedOnEpochDay = fixedToday.minusDays(10).toEpochDay(),
+            purchasedOnEpochDay = fixedToday.minusDays(12).toEpochDay(),
             quantity = 1.0
         )
 
-        // 洗剤: 5日前に購入 -> 残り 30 - 5 = 25日 (safe: > 7日)
+        // 洗剤: 5日前に購入 -> 残り 30 - 5 = 25日 (safe: 周期30日の2割=6日より多い)
         reminderRepository.recordManualPurchase(
             productId = soap.id,
             purchasedOnEpochDay = fixedToday.minusDays(5).toEpochDay(),
@@ -86,9 +86,9 @@ class RealRepositoriesTest {
 
         // 追跡対象外の米は含まれない
         assertEquals(2, items.size)
-        // 残り日数の昇順でソートされている (牛乳: 4日, 洗剤: 25日)
+        // 残り日数の昇順でソートされている (牛乳: 2日, 洗剤: 25日)
         assertEquals("牛乳", items[0].product.name)
-        assertEquals(4, items[0].product.remainingDays)
+        assertEquals(2, items[0].product.remainingDays)
         assertEquals(StockStatus.RUNNING_OUT, items[0].product.status)
 
         assertEquals("食器用洗剤", items[1].product.name)
@@ -157,9 +157,9 @@ class RealRepositoriesTest {
         // スヌーズ実行
         repo.snooze(soap.id.toString())
 
-        // スヌーズ後: 切れる日が今日(Day T)から+6日ずれるため、残りは6日
+        // スヌーズ後: 切れる日(今日+2)が周期の2割=6日後ろにずれるため、残りは 2 + 6 = 8日 (F-5)
         items = repo.getShoppingItemsStream().first()
-        assertEquals(6, items[0].product.remainingDays)
+        assertEquals(8, items[0].product.remainingDays)
 
         // 飲料・乳製品: 周期7日 -> 7 * 0.2 = 1.4 -> 最短2日に丸められる
         val milk = reminderRepository.getOrCreateProduct("牛乳", "飲料・乳製品")
@@ -270,7 +270,7 @@ class RealRepositoriesTest {
 
         // レシート経由の購入
         val receiptId = reminderRepository.saveReceiptAndPurchases(
-            storeName = "ライフ 渋谷店",
+            storeName = "架空ストア 桜町店",
             purchasedOnEpochDay = fixedToday.minusDays(20).toEpochDay(),
             totalAmount = 250,
             items = listOf(
@@ -308,7 +308,7 @@ class RealRepositoriesTest {
         assertNull(purchases[0].storeName)
 
         val receiptPurchase = purchases.first { it.source == UiPurchaseSource.RECEIPT }
-        assertEquals("ライフ 渋谷店", receiptPurchase.storeName)
+        assertEquals("架空ストア 桜町店", receiptPurchase.storeName)
         assertEquals(receiptId.toString(), receiptPurchase.receiptId)
     }
 
@@ -403,8 +403,8 @@ class RealRepositoriesTest {
         )
 
         // 正常登録
-        val registered = repo.registerCurrentLocation("ライフ 渋谷店", radiusMeters = 250)
-        assertEquals("ライフ 渋谷店", registered.name)
+        val registered = repo.registerCurrentLocation("架空ストア 桜町店", radiusMeters = 250)
+        assertEquals("架空ストア 桜町店", registered.name)
         assertEquals(35.6812, registered.latitude, 0.0001)
         assertEquals(139.7671, registered.longitude, 0.0001)
         assertEquals(250, registered.radiusMeters)
@@ -412,7 +412,7 @@ class RealRepositoriesTest {
 
         val stores = repo.getStoresStream().first()
         assertEquals(1, stores.size)
-        assertEquals("ライフ 渋谷店", stores[0].name)
+        assertEquals("架空ストア 桜町店", stores[0].name)
 
         // 位置情報取得失敗時の例外
         mockLocation = null
@@ -543,9 +543,9 @@ class RealRepositoriesTest {
         )
 
         val soap = reminderRepository.getOrCreateProduct("食器用洗剤", "日用品")
-        // 最初は購入履歴なし
+        // 最初は購入履歴なし(予測の対象外なので買い物リストには出ない: F-4, S-5)
         val initialItems = shoppingRepo.getShoppingItemsStream().first()
-        assertEquals(1, initialItems.size)
+        assertEquals(0, initialItems.size)
 
         // purchaseRepo 経由で購入を追加
         purchaseRepo.insertPurchase(

@@ -32,43 +32,36 @@ class DefaultGeofenceManager(
         )
     }
 
+    private val synchronizer = GeofenceSynchronizer(object : GeofenceBackend {
+        override suspend fun removeAll() {
+            awaitTask(geofencingClient.removeGeofences(geofencePendingIntent))
+        }
+
+        override suspend fun removeIds(ids: List<String>) {
+            awaitTask(geofencingClient.removeGeofences(ids))
+        }
+
+        override suspend fun add(stores: List<Store>) {
+            // 登録直後に ENTER を発火させない(店舗を登録した場所に今いるため、余計な通知になる)
+            val request = GeofencingRequest.Builder().apply {
+                setInitialTrigger(0)
+                addGeofences(stores.map { buildGeofence(it) })
+            }.build()
+            awaitTask(geofencingClient.addGeofences(request, geofencePendingIntent))
+        }
+    }, PrefsRegisteredIdStore.of(context))
+
     /**
-     * 通知が有効(notifyEnabled == true)な店舗一覧を端末のジオフェンスに登録する。
+     * 通知が有効(notifyEnabled == true)な店舗だけを監視対象にする。先に追加(同じ ID は上書き)してから、不要になった ID だけを解除する。
+     * 失敗(権限なし等)は握りつぶさず例外で呼び出し元に伝える。
      */
     override suspend fun registerGeofences(stores: List<Store>) {
-        val activeStores = stores.filter { it.notifyEnabled }
-        if (activeStores.isEmpty()) {
-            unregisterAllGeofences()
-            return
-        }
-
-        val geofences = activeStores.map { store ->
-            buildGeofence(store)
-        }
-
-        val request = GeofencingRequest.Builder().apply {
-            setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-            addGeofences(geofences)
-        }.build()
-
-        try {
-            awaitTask(geofencingClient.addGeofences(request, geofencePendingIntent))
-        } catch (_: SecurityException) {
-            // 位置情報権限がない場合は安全にスキップ
-        } catch (_: Exception) {
-            // ジオフェンス登録エラーでクラッシュさせない
-        }
+        synchronizer.sync(stores)
     }
 
-    /**
-     * 登録済みのすべての店舗ジオフェンスを解除する。
-     */
+    /** 登録済みのすべての店舗ジオフェンスを解除する。失敗は例外で伝える。 */
     override suspend fun unregisterAllGeofences() {
-        try {
-            awaitTask(geofencingClient.removeGeofences(geofencePendingIntent))
-        } catch (_: Exception) {
-            // 解除エラーでクラッシュさせない
-        }
+        synchronizer.clear()
     }
 
     private suspend fun <T> awaitTask(task: Task<T>): T = suspendCancellableCoroutine { continuation ->

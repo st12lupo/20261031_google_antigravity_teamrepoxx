@@ -152,8 +152,8 @@ class ProductDetailViewModel(
                 if (editingId == null) {
                     _uiState.value = state.copy(editor = null)
                     runAction(ProductMessage.ADDED) {
-                        shoppingListRepository.addManualPurchase(
-                            productName = loaded.product.name,
+                        shoppingListRepository.addPurchaseForProduct(
+                            productId = loaded.product.id,
                             purchasedOn = value.date,
                             quantity = value.quantity
                         )

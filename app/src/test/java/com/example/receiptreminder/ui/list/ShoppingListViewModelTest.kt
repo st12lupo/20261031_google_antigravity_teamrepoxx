@@ -64,6 +64,10 @@ class ShoppingListViewModelTest {
             if (failActions) throw IllegalStateException("boom")
             added += Triple(productName, purchasedOn, quantity)
         }
+
+        override suspend fun addPurchaseForProduct(productId: String, purchasedOn: LocalDate, quantity: Int, price: Int?) {
+            if (failActions) throw IllegalStateException("boom")
+        }
     }
 
     private fun item(id: String, days: Int, estimated: Boolean = false, tracked: Boolean = true) =

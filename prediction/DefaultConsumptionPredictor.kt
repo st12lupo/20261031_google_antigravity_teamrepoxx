@@ -27,10 +27,11 @@ class DefaultConsumptionPredictor(
         purchases: List<Purchase>,
         todayEpochDay: Long
     ): ProductPrediction {
-        // 対象商品の購入履歴をフィルタ＆日付昇順ソート
-        val productPurchases = purchases
-            .filter { it.productId == product.id }
-            .sortedBy { it.purchasedOnEpochDay }
+        // 対象商品の購入履歴をフィルタし、同じ日の購入は 1 回に合算する(F-1, F-2)。
+        // 牛乳 1 個の行が同じ日に 2 つあれば、数量 2 の購入 1 回として扱う
+        val productPurchases = mergeSameDayPurchases(
+            purchases.filter { it.productId == product.id }
+        )
 
         if (productPurchases.isEmpty()) {
             return ProductPrediction(
@@ -73,8 +74,9 @@ class DefaultConsumptionPredictor(
 
         val remainingDays = finalPredictedOutOfStock - todayEpochDay
 
-        // F-4: 周期の 2 割 (最短 2 日、最長 7 日) 以内に入った商品と、切れる日を過ぎた商品を「なくなりそう」と判定
-        val bufferDays = calculateBufferDays(effectiveCycleDays)
+        // F-4: 周期(1 個あたり)の 2 割 (最短 2 日、最長 7 日) 以内に入った商品と、切れる日を過ぎた商品を「なくなりそう」と判定。
+        // 要件の F-1 で周期は 1 個あたりなので、数量を掛けた日数ではなく 1 個あたりの周期から求める
+        val bufferDays = calculateBufferDays(cycleDaysPerUnit)
         val isRunningOut = product.isTracked && (remainingDays <= bufferDays)
 
         val status = when {
@@ -93,9 +95,29 @@ class DefaultConsumptionPredictor(
             predictedOutOfStockOnEpochDay = finalPredictedOutOfStock,
             remainingDays = remainingDays,
             isRunningOut = isRunningOut,
-            status = status
+            status = status,
+            bufferDays = bufferDays
         )
     }
+
+    /**
+     * 商品と日付が同じ購入を 1 件にまとめ、数量と金額を足して日付昇順で返す。
+     * 呼び出し側が 1 商品分だけ渡す前提だが、商品が混ざっていても商品ごとにまとめる。
+     */
+    fun mergeSameDayPurchases(purchases: List<Purchase>): List<Purchase> =
+        purchases
+            .groupBy { it.productId to it.purchasedOnEpochDay }
+            .map { (_, group) ->
+                if (group.size == 1) {
+                    group.first()
+                } else {
+                    group.first().copy(
+                        quantity = group.sumOf { it.quantity },
+                        price = group.sumOf { it.price }
+                    )
+                }
+            }
+            .sortedBy { it.purchasedOnEpochDay }
 
     /**
      * (次回購入までの日数 ÷ 前回購入数量) のリストを計算
@@ -130,7 +152,7 @@ class DefaultConsumptionPredictor(
     }
 
     /**
-     * 周期の2割（最短2日、最長7日）の計算 (F-4, F-5)
+     * 周期(1 個あたり)の2割（最短2日、最長7日）の計算 (F-4, F-5)
      */
     fun calculateBufferDays(cycleDays: Double): Long {
         val raw = (cycleDays * 0.2).roundToLong()

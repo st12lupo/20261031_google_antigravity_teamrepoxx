@@ -56,6 +56,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,6 +66,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -668,6 +671,7 @@ private fun EditingContent(state: ReceiptReviewUiState, vm: ReceiptReviewViewMod
                                 onNameChange = { vm.onItemNameChange(item.id, it) },
                                 onQuantityChange = { vm.onItemQuantityChange(item.id, it) },
                                 onPriceChange = { vm.onItemPriceChange(item.id, it) },
+                                onTrackedChange = { vm.onItemTrackedChange(item.id, it) },
                                 onRemove = { vm.removeItem(item.id) }
                             )
                             if (index < form.items.lastIndex) {
@@ -709,6 +713,7 @@ private fun ReceiptItemRow(
     onNameChange: (String) -> Unit,
     onQuantityChange: (String) -> Unit,
     onPriceChange: (String) -> Unit,
+    onTrackedChange: (Boolean) -> Unit,
     onRemove: () -> Unit
 ) {
     Column(
@@ -805,6 +810,11 @@ private fun ReceiptItemRow(
             else -> stringResource(R.string.review_item_tracked)
         }
         Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+        Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(50))
                 .background(
@@ -842,6 +852,13 @@ private fun ReceiptItemRow(
                     MaterialTheme.colorScheme.onSurfaceVariant
                 }
             )
+        }
+        val toggleLabel = stringResource(R.string.review_item_track_toggle)
+        Switch(
+            checked = item.isTracked,
+            onCheckedChange = onTrackedChange,
+            modifier = Modifier.semantics { contentDescription = toggleLabel }
+        )
         }
     }
 }
