@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="review_title">レシートの確認</string>
+    <string name="review_subtitle">読み取り結果を確認して、違うところを直してください。</string>
+    <string name="review_scanning">レシートを読み取っています…</string>
+    <string name="review_scan_failed_title">読み取れませんでした</string>
+    <string name="review_scan_failed_body">もう一度撮影するか、手入力で登録できます。</string>
+    <string name="review_retake">再撮影する</string>
+    <string name="review_manual_input">手動で入力する</string>
+    <string name="review_duplicate_title">同じレシートが登録済みかもしれません</string>
+    <string name="review_duplicate_body">店名、日付、合計金額が一致しています。別のレシートならそのまま保存できます。</string>
+    <string name="review_field_store">店名</string>
+    <string name="review_field_date">日付</string>
+    <string name="review_field_date_hint">例 2026/10/31</string>
+    <string name="review_field_total">合計金額 (円)</string>
+    <string name="review_field_item_name">商品名</string>
+    <string name="review_field_quantity">数量</string>
+    <string name="review_field_price">金額 (円)</string>
+    <string name="review_items_count">商品 %1$d 点</string>
+    <string name="review_item_tracked">予測の対象</string>
+    <string name="review_item_untracked">予測の対象外</string>
+    <string name="review_item_tracked_with_notice">予測の対象・%1$s</string>
+    <string name="review_item_delete">この商品を削除</string>
+    <string name="review_add_item">商品を追加</string>
+    <string name="review_image_deleted_notice">保存するとレシートの画像は削除されます。</string>
+    <string name="review_cancel">取り消す</string>
+    <string name="review_save">保存する</string>
+    <string name="review_saving">保存しています…</string>
+    <string name="review_save_failed">保存できませんでした。入力は残してあります。もう一度お試しください。</string>
+    <string name="review_error_required">入力してください</string>
+    <string name="review_error_date">日付を 2026/10/31 の形式で入力してください</string>
+    <string name="review_error_number">0 以上の整数で入力してください</string>
+    <string name="review_error_quantity">1 以上の整数で入力してください</string>
+    <string name="review_error_no_items">商品を 1 つ以上入力してください</string>
+</resources>

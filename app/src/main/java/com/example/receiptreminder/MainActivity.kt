@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.receiptreminder.di.AppContainerHolder
+import com.example.receiptreminder.di.LocalAppContainer
 import com.example.receiptreminder.ui.navigation.AppNavigation
 import com.example.receiptreminder.ui.theme.ReceiptReminderTheme
 
@@ -12,8 +15,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ReceiptReminderTheme {
-                AppNavigation()
+            CompositionLocalProvider(LocalAppContainer provides AppContainerHolder.container) {
+                ReceiptReminderTheme {
+                    AppNavigation()
+                }
             }
         }
     }

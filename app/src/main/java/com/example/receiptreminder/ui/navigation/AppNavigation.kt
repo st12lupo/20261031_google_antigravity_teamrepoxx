@@ -17,6 +17,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.receiptreminder.ui.list.ShoppingListScreen
 import com.example.receiptreminder.ui.product.ProductDetailScreen
+import com.example.receiptreminder.ui.product.ProductListScreen
 import com.example.receiptreminder.ui.review.ReceiptReviewScreen
 import com.example.receiptreminder.ui.store.NotificationExplainerScreen
 import com.example.receiptreminder.ui.store.StoresScreen
@@ -31,13 +32,14 @@ fun AppNavigation(
 
     val bottomNavItems = listOf(
         Screen.ShoppingList,
-        Screen.ProductDetail,
+        Screen.ProductList,
         Screen.Stores
     )
 
     // レシート確認画面や権限説明画面などではボトムバーを非表示にする
     val showBottomBar = currentRoute in listOf(
         Screen.ShoppingList.route,
+        Screen.ProductList.route,
         Screen.ProductDetail.route,
         Screen.Stores.route
     )
@@ -52,19 +54,15 @@ fun AppNavigation(
                     bottomNavItems.forEach { screen ->
                         val selected = when (screen) {
                             Screen.ShoppingList -> currentRoute == Screen.ShoppingList.route
-                            Screen.ProductDetail -> currentRoute?.startsWith("product_detail") == true
+                            Screen.ProductList -> currentRoute == Screen.ProductList.route ||
+                                currentRoute?.startsWith("product_detail") == true
                             Screen.Stores -> currentRoute == Screen.Stores.route
                             else -> false
                         }
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
-                                val destinationRoute = if (screen == Screen.ProductDetail) {
-                                    Screen.ProductDetail.createRoute("sample-id")
-                                } else {
-                                    screen.route
-                                }
-                                navController.navigate(destinationRoute) {
+                                navController.navigate(screen.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
@@ -102,6 +100,14 @@ fun AppNavigation(
                     },
                     onNavigateToScan = {
                         navController.navigate(Screen.ReceiptScanReview.route)
+                    }
+                )
+            }
+
+            composable(Screen.ProductList.route) {
+                ProductListScreen(
+                    onNavigateToDetail = { productId ->
+                        navController.navigate(Screen.ProductDetail.createRoute(productId))
                     }
                 )
             }
