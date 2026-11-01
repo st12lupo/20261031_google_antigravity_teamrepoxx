@@ -105,7 +105,7 @@
 - 既定周期は目安の値で、実際の消費量とは異なる場合がある
 
 ## 7. 開発の進め方
-- ソース管理: https://github.com/st12lupo/20261031_google_antigravity_teamrepoxx(非公開にする)
+- ソース管理: https://github.com/st12lupo/20261031_google_antigravity_teamrepoxx(公開)
 - ブランチ: 機能ごとにブランチを切り、PR のレビュー後に `main` へマージする
 - 分担: 実装は Claude、Android Studio での確認とレビューはチームが行う
 - 署名: 配布用 APK はチーム共通の鍵で署名し、鍵はリポジトリの外で管理する
